@@ -48,6 +48,10 @@ public class AppDbContext : DbContext
             .HasIndex(c => c.CellCode)
             .IsUnique();
 
+        modelBuilder.Entity<StorageCell>()
+            .Property(c => c.MaxWeightKg)
+            .HasColumnType("decimal(18,2)");
+
         modelBuilder.Entity<SystemSetting>()
             .HasIndex(s => s.Key)
             .IsUnique();

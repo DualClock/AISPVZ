@@ -69,7 +69,7 @@ public class StorageCell
 
     public bool IsBusy { get; set; } = false;
 
-    public double MaxWeightKg { get; set; } = 30.0;
+    public decimal MaxWeightKg { get; set; } = 30.0m;
 
     [MaxLength(200)]
     public string? Comment { get; set; }

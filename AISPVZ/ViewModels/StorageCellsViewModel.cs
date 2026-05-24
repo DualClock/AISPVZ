@@ -32,7 +32,7 @@ public partial class StorageCellsViewModel : ObservableObject
     private string _newCellZone = "A";
 
     [ObservableProperty]
-    private double _newCellMaxWeight = 30;
+    private decimal _newCellMaxWeight = 30m;
 
     [ObservableProperty]
     private string _newCellComment = "";

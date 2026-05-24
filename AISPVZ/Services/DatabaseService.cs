@@ -78,16 +78,16 @@ public class DatabaseService
 
         var cells = new List<StorageCell>
         {
-            new() { CellCode = "A-01", Zone = "A", IsBusy = false, MaxWeightKg = 30.0, Comment = "Маленькая ячейка" },
-            new() { CellCode = "A-02", Zone = "A", IsBusy = true, MaxWeightKg = 30.0, Comment = "Средняя ячейка" },
-            new() { CellCode = "A-03", Zone = "A", IsBusy = false, MaxWeightKg = 50.0, Comment = "Большая ячейка" },
-            new() { CellCode = "B-01", Zone = "B", IsBusy = true, MaxWeightKg = 100.0, Comment = "Для тяжелых грузов" },
-            new() { CellCode = "B-02", Zone = "B", IsBusy = false, MaxWeightKg = 100.0, Comment = null },
-            new() { CellCode = "B-03", Zone = "B", IsBusy = true, MaxWeightKg = 150.0, Comment = "VIP ячейка" },
-            new() { CellCode = "C-01", Zone = "C", IsBusy = false, MaxWeightKg = 30.0, Comment = "Стеллаж 1" },
-            new() { CellCode = "C-02", Zone = "C", IsBusy = true, MaxWeightKg = 30.0, Comment = "Стеллаж 2" },
-            new() { CellCode = "C-03", Zone = "C", IsBusy = false, MaxWeightKg = 50.0, Comment = null },
-            new() { CellCode = "D-01", Zone = "D", IsBusy = true, MaxWeightKg = 200.0, Comment = "Для крупногабарита" }
+            new() { CellCode = "A-01", Zone = "A", IsBusy = false, MaxWeightKg = 30.0m, Comment = "Маленькая ячейка" },
+            new() { CellCode = "A-02", Zone = "A", IsBusy = true, MaxWeightKg = 30.0m, Comment = "Средняя ячейка" },
+            new() { CellCode = "A-03", Zone = "A", IsBusy = false, MaxWeightKg = 50.0m, Comment = "Большая ячейка" },
+            new() { CellCode = "B-01", Zone = "B", IsBusy = true, MaxWeightKg = 100.0m, Comment = "Для тяжелых грузов" },
+            new() { CellCode = "B-02", Zone = "B", IsBusy = false, MaxWeightKg = 100.0m, Comment = null },
+            new() { CellCode = "B-03", Zone = "B", IsBusy = true, MaxWeightKg = 150.0m, Comment = "VIP ячейка" },
+            new() { CellCode = "C-01", Zone = "C", IsBusy = false, MaxWeightKg = 30.0m, Comment = "Стеллаж 1" },
+            new() { CellCode = "C-02", Zone = "C", IsBusy = true, MaxWeightKg = 30.0m, Comment = "Стеллаж 2" },
+            new() { CellCode = "C-03", Zone = "C", IsBusy = false, MaxWeightKg = 50.0m, Comment = null },
+            new() { CellCode = "D-01", Zone = "D", IsBusy = true, MaxWeightKg = 200.0m, Comment = "Для крупногабарита" }
         };
         db.StorageCells.AddRange(cells);
         await db.SaveChangesAsync();

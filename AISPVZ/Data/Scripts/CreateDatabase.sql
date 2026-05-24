@@ -1,6 +1,6 @@
 -- =====================================================
 -- AISPVZ Database Creation Script
--- Для старых версий SQL Server (2000/2005)
+-- С поддержкой русского языка
 -- =====================================================
 
 USE master;
@@ -28,9 +28,10 @@ BEGIN
 END
 GO
 
--- Создаем новую базу данных
-PRINT 'Создание новой базы данных...';
-CREATE DATABASE AISPVZ_DB;
+-- Создаем новую базу данных с поддержкой русского языка
+PRINT 'Создание новой базы данных с поддержкой русского языка...';
+CREATE DATABASE AISPVZ_DB
+COLLATE Cyrillic_General_CI_AS;
 GO
 
 -- Переключаемся на новую БД
@@ -97,7 +98,7 @@ CREATE TABLE StorageCells (
     CellCode NVARCHAR(50) NOT NULL UNIQUE,
     Zone NVARCHAR(10) NOT NULL DEFAULT 'A',
     IsBusy BIT NOT NULL DEFAULT 0,
-    MaxWeightKg FLOAT NOT NULL DEFAULT 30.0,
+    MaxWeightKg DECIMAL(18,2) NOT NULL DEFAULT 30.0,
     Comment NVARCHAR(500),
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE()
 );
@@ -127,7 +128,7 @@ CREATE TABLE OrderItems (
     Article NVARCHAR(50),
     ProductName NVARCHAR(255) NOT NULL,
     Quantity INT NOT NULL DEFAULT 1,
-    Price FLOAT NOT NULL DEFAULT 0,
+    Price DECIMAL(18,2) NOT NULL DEFAULT 0,
     IsIssued BIT NOT NULL DEFAULT 0
 );
 GO
@@ -150,7 +151,7 @@ CREATE TABLE IssueOperations (
     ShiftId INT NOT NULL,
     IssueDateTime DATETIME NOT NULL DEFAULT GETDATE(),
     Result INT NOT NULL DEFAULT 0,
-    TotalAmount FLOAT NOT NULL DEFAULT 0,
+    TotalAmount DECIMAL(18,2) NOT NULL DEFAULT 0,
     Comment NVARCHAR(500)
 );
 GO
@@ -185,19 +186,6 @@ CREATE TABLE SystemSettings (
     SettingValue NTEXT NOT NULL,
     Description NVARCHAR(500)
 );
-GO
-
--- =====================================================
--- ИСПРАВЛЕНИЕ ТИПОВ ДАННЫХ: FLOAT -> DECIMAL(18,2)
--- Для правильного маппинга на C# decimal
--- =====================================================
-PRINT 'Изменение типов данных FLOAT -> DECIMAL...';
-
-ALTER TABLE OrderItems ALTER COLUMN Price DECIMAL(18,2) NOT NULL;
-ALTER TABLE IssueOperations ALTER COLUMN TotalAmount DECIMAL(18,2) NOT NULL;
-GO
-
-PRINT 'Типы данных исправлены.';
 GO
 
 -- =====================================================

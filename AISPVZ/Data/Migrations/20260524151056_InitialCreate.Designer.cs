@@ -349,8 +349,8 @@ namespace AISPVZ.Data.Migrations
                     b.Property<bool>("IsBusy")
                         .HasColumnType("bit");
 
-                    b.Property<double>("MaxWeightKg")
-                        .HasColumnType("float");
+                    b.Property<decimal>("MaxWeightKg")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Zone")
                         .IsRequired()
