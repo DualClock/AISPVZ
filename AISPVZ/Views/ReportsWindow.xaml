@@ -1,0 +1,302 @@
+<Window x:Class="AISPVZ.Views.ReportsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Отчёты" Height="700" Width="1050"
+        MinWidth="850" MinHeight="500"
+        WindowStartupLocation="CenterScreen"
+        Background="#FF1E1E2E">
+
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="Margin" Value="4,0"/>
+            <Setter Property="Background" Value="#FF6366F1"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="MinHeight" Value="40"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Opacity" Value="0.85"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="TabItem">
+            <Setter Property="Background" Value="#FF1F2937"/>
+            <Setter Property="Foreground" Value="#FF9CA3AF"/>
+            <Setter Property="Padding" Value="20,14"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border Name="Border"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8,8,0,0"
+                                Padding="{TemplateBinding Padding}"
+                                Margin="{TemplateBinding Margin}">
+                            <ContentPresenter x:Name="ContentSite"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Center"
+                                              ContentSource="Header"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#FF6366F1"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#FF2D2D44"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="DatePicker">
+            <Setter Property="Background" Value="#FF2D2D44"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#FF3D3D5C"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#FF2D2D44"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#FF3D3D5C"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="#FF2D2D44"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FF6366F1"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#FF6366F1"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- DataGrid Styles -->
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#FF1F2937"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="14,12"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <Style TargetType="DataGridRow">
+            <Setter Property="Background" Value="#FF1F2937"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="MinHeight" Value="48"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#FF6366F1"/>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FF2D2D44"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="DataGridCell">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="DataGrid">
+            <Setter Property="Background" Value="#FF1F2937"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="RowBackground" Value="#FF1F2937"/>
+            <Setter Property="AlternatingRowBackground" Value="#FF2D2D44"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="SelectionMode" Value="Single"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="RowHeight" Value="48"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="📊 ОТЧЁТЫ" FontSize="22" FontWeight="Bold"/>
+            <TextBlock Text="Аналитика и статистика работы ПВЗ" FontSize="11" Foreground="#FF6B7280" Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Tabs -->
+        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0">
+
+            <!-- ========== TAB 1: SHIFT REPORT ========== -->
+            <TabItem Header="📋 Сменный отчёт">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Control Panel -->
+                    <Border Grid.Row="0" Background="#FF1F2937" CornerRadius="10" Padding="16" Margin="0,0,0,16">
+                        <WrapPanel Orientation="Horizontal">
+                            <Button Content="🔄 Загрузить смены" Command="{Binding LoadClosedShiftsCommand}"
+                                    Background="#FF3B82F6" Margin="0,0,10,0"/>
+                            <ComboBox ItemsSource="{Binding ClosedShifts}"
+                                      SelectedItem="{Binding SelectedShift}"
+                                      DisplayMemberPath="DisplayText"
+                                      Width="280" MinWidth="200" Margin="0,0,10,0"
+                                      VerticalAlignment="Center"/>
+                            <Button Content="📊 Сформировать" Command="{Binding GenerateShiftReportCommand}"
+                                    Background="#FF10B981" Margin="0,0,10,0"/>
+                            <Button Content="📥 Экспорт CSV" Command="{Binding ExportShiftReportToCsvCommand}"
+                                    Background="#FF4B5563"/>
+                        </WrapPanel>
+                    </Border>
+
+                    <!-- Data Table -->
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding ShiftReportItems}"
+                              AutoGenerateColumns="False"
+                              MinHeight="300">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="⏰ ВРЕМЯ" Binding="{Binding Time, StringFormat='{}{0:HH:mm}'}" Width="90"/>
+                            <DataGridTextColumn Header="📦 ШТРИХКОД" Binding="{Binding OrderBarcode}" Width="150"/>
+                            <DataGridTextColumn Header="👤 КЛИЕНТ" Binding="{Binding ClientName}" Width="*" MinWidth="160"/>
+                            <DataGridTextColumn Header="📝 ОПЕРАЦИЯ" Binding="{Binding Result}" Width="120"/>
+                            <DataGridTextColumn Header="💰 СУММА" Binding="{Binding Amount, StringFormat=N2}" Width="110"/>
+                            <DataGridTextColumn Header="👨‍💼 ОПЕРАТОР" Binding="{Binding EmployeeName}" Width="160"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Status -->
+                    <TextBlock Grid.Row="2" Text="{Binding StatusMessage}"
+                               Foreground="#FF4ADE80" Margin="0,12,0,0" FontSize="12"/>
+                </Grid>
+            </TabItem>
+
+            <!-- ========== TAB 2: OVERDUED ORDERS ========== -->
+            <TabItem Header="⚠️ Просроченные заказы">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Control Panel -->
+                    <Border Grid.Row="0" Background="#FF1F2937" CornerRadius="10" Padding="16" Margin="0,0,0,16">
+                        <WrapPanel Orientation="Horizontal">
+                            <Button Content="📊 Сформировать" Command="{Binding GenerateOverdueReportCommand}"
+                                    Background="#FF10B981" Margin="0,0,10,0"/>
+                            <Button Content="📥 Экспорт CSV" Command="{Binding ExportOverdueReportToCsvCommand}"
+                                    Background="#FF4B5563"/>
+                        </WrapPanel>
+                    </Border>
+
+                    <!-- Data Table -->
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding OverdueItems}"
+                              AutoGenerateColumns="False"
+                              MinHeight="300">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="📦 ШТРИХКОД" Binding="{Binding Barcode}" Width="150"/>
+                            <DataGridTextColumn Header="👤 КЛИЕНТ" Binding="{Binding ClientName}" Width="*" MinWidth="160"/>
+                            <DataGridTextColumn Header="📞 ТЕЛЕФ��Н" Binding="{Binding ClientPhone}" Width="130"/>
+                            <DataGridTextColumn Header="🗄️ ЯЧЕЙКА" Binding="{Binding CellCode}" Width="100"/>
+                            <DataGridTextColumn Header="📅 ПЛАН. ДАТА" Binding="{Binding PlannedDate, StringFormat='{}{0:dd.MM.yyyy}'}" Width="110"/>
+                            <DataGridTextColumn Header="⚠️ ДНЕЙ ПРОСРОЧКИ" Binding="{Binding DaysOverdue}" Width="130">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#FFEF4444"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <TextBlock Grid.Row="2" Text="* Просроченные заказы требуют немедленного внимания"
+                               Foreground="#FFEF4444" Margin="0,12,0,0" FontSize="12" FontStyle="Italic"/>
+                </Grid>
+            </TabItem>
+
+            <!-- ========== TAB 3: MARKETPLACE STATS ========== -->
+            <TabItem Header="📈 Статистика по маркетплейсам">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Control Panel -->
+                    <Border Grid.Row="0" Background="#FF1F2937" CornerRadius="10" Padding="16" Margin="0,0,0,16">
+                        <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="📅 Период:" VerticalAlignment="Center" Margin="0,0,12,0" FontSize="13"/>
+                            <DatePicker SelectedDate="{Binding ReportStartDate}" Width="130" Margin="0,0,10,0"/>
+                            <TextBlock Text="—" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="13"/>
+                            <DatePicker SelectedDate="{Binding ReportEndDate}" Width="130" Margin="0,0,16,0"/>
+                            <Button Content="📊 Сформировать" Command="{Binding GenerateMarketplaceReportCommand}"
+                                    Background="#FF10B981" Margin="0,0,10,0"/>
+                            <Button Content="📥 Экспорт CSV" Command="{Binding ExportMarketplaceReportToCsvCommand}"
+                                    Background="#FF4B5563"/>
+                        </WrapPanel>
+                    </Border>
+
+                    <!-- Data Table -->
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding MarketplaceStats}"
+                              AutoGenerateColumns="False"
+                              MinHeight="300">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="🏪 МАРКЕТПЛЕЙС" Binding="{Binding MarketplaceName}" Width="*" MinWidth="220"/>
+                            <DataGridTextColumn Header="📦 КОЛ-ВО ЗАКАЗОВ" Binding="{Binding OrderCount}" Width="160"/>
+                            <DataGridTextColumn Header="💰 ОБЩАЯ СУММА" Binding="{Binding TotalAmount, StringFormat=N2}" Width="160">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#FF4ADE80"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <TextBlock Grid.Row="2" Text="{Binding MarketplaceStatusMessage}"
+                               Foreground="#FF9CA3AF" Margin="0,12,0,0" FontSize="12"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>

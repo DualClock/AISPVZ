@@ -1,0 +1,253 @@
+<Window x:Class="AISPVZ.Views.StorageCellsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Управление ячейками" Height="650" Width="1000"
+        MinWidth="800" MinHeight="450"
+        WindowStartupLocation="CenterScreen"
+        Background="#FF1E1E2E">
+
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="Margin" Value="4,0"/>
+            <Setter Property="Background" Value="#FF6366F1"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="MinHeight" Value="36"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Opacity" Value="0.85"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#FF2D2D44"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#FF3D3D5C"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="CaretBrush" Value="White"/>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#FF2D2D44"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#FF3D3D5C"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="#FF2D2D44"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FF6366F1"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#FF6366F1"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="10,0,0,0"/>
+        </Style>
+
+        <Style TargetType="Separator">
+            <Setter Property="Background" Value="#FF374151"/>
+            <Setter Property="Width" Value="1"/>
+            <Setter Property="Margin" Value="10,5"/>
+        </Style>
+
+        <!-- DataGrid Styles -->
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#FF1F2937"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="14,12"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <Style TargetType="DataGridRow">
+            <Setter Property="Background" Value="#FF1F2937"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="MinHeight" Value="48"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#FF6366F1"/>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FF2D2D44"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="DataGridCell">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="DataGrid">
+            <Setter Property="Background" Value="#FF1F2937"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="RowBackground" Value="#FF1F2937"/>
+            <Setter Property="AlternatingRowBackground" Value="#FF2D2D44"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="SelectionMode" Value="Single"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="RowHeight" Value="48"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="📋 УПРАВЛЕНИЕ ЯЧЕЙКАМИ" FontSize="22" FontWeight="Bold"/>
+            <TextBlock Text="Управление ячейками хранения" FontSize="11" Foreground="#FF6B7280" Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Filter Panel -->
+        <Border Grid.Row="1" Background="#FF1F2937" CornerRadius="10" Padding="12" Margin="0,0,0,16">
+            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="➕ Добавить" Command="{Binding StartAddCommand}" Background="#FF10B981" Margin="0,0,8,0"/>
+                <Button Content="✏️ Изменить" Command="{Binding StartEditCommand}" Background="#FF3B82F6" Margin="0,0,8,0"/>
+
+                <Separator/>
+
+                <TextBlock Text="Зона:" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="12"/>
+                <TextBox Text="{Binding FilterZone, UpdateSourceTrigger=PropertyChanged}"
+                         Width="100" Margin="0,0,15,0"/>
+
+                <CheckBox Content="🔒 Только занятые" IsChecked="{Binding FilterBusyOnly}"
+                          Foreground="White" Margin="0,0,15,0"/>
+
+                <Button Content="🔍 Применить фильтр" Command="{Binding ApplyFilterCommand}"
+                        Background="#FF374151" Margin="0,0,8,0"/>
+                <Button Content="📎 Экспорт в CSV" Background="#FF4B5563" Click="ExportClick"/>
+            </WrapPanel>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Cells Table -->
+            <DataGrid Grid.Column="0"
+                      ItemsSource="{Binding Cells}"
+                      SelectedItem="{Binding SelectedCell}"
+                      AutoGenerateColumns="False"
+                      MinHeight="380">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="КОД ЯЧЕЙКИ" Binding="{Binding CellCode}" Width="160">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="FontFamily" Value="Consolas"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="ЗОНА" Binding="{Binding Zone}" Width="120">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTemplateColumn Header="СТАТУС" Width="140">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Background="{Binding IsBusy, Converter={StaticResource CellStatusToColorConv}}"
+                                        CornerRadius="6" Padding="10,6" Margin="2" HorizontalAlignment="Left">
+                                    <TextBlock Text="{Binding IsBusy, Converter={StaticResource CellStatusToBoolConv}}"
+                                               FontSize="13" FontWeight="SemiBold"/>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="МАКС. ВЕС (КГ)" Binding="{Binding MaxWeightKg, StringFormat=N1}" Width="150"/>
+                    <DataGridTextColumn Header="КОММЕНТАРИЙ" Binding="{Binding Comment}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- Edit Panel -->
+            <Border Grid.Column="1" Background="#FF1F2937" CornerRadius="12" Padding="18"
+                    Width="340" Margin="12,0,0,0"
+                    Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisConv}}">
+                <StackPanel>
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding SelectedCell.Id, Converter={StaticResource NullToTextConv}, FallbackValue='➕ НОВАЯ ЯЧЕЙКА'}"
+                                   FontSize="16" FontWeight="Bold" Foreground="#FF6366F1"/>
+                        <Button Grid.Column="1" Content="✖️" Command="{Binding CancelEditCommand}"
+                                Background="Transparent" Foreground="#FF9CA3AF"
+                                Padding="8,4" Margin="0" FontSize="14"/>
+                    </Grid>
+
+                    <TextBlock Text="📦 Код ячейки *" Margin="0,0,0,4" FontSize="11" Foreground="#FF9CA3AF"/>
+                    <TextBox Text="{Binding NewCellCode}" Margin="0,0,0,14"/>
+
+                    <TextBlock Text="🗄️ Зона" Margin="0,0,0,4" FontSize="11" Foreground="#FF9CA3AF"/>
+                    <ComboBox SelectedItem="{Binding NewCellZone}" Margin="0,0,0,14">
+                        <ComboBoxItem Content="A - Основная"/>
+                        <ComboBoxItem Content="B - Боковая"/>
+                        <ComboBoxItem Content="C - Складская"/>
+                    </ComboBox>
+
+                    <TextBlock Text="⚖️ Макс. вес (кг)" Margin="0,0,0,4" FontSize="11" Foreground="#FF9CA3AF"/>
+                    <TextBox Text="{Binding NewCellMaxWeight}" Margin="0,0,0,14"
+                             ToolTip="Максимальный вес груза в килограммах"/>
+
+                    <TextBlock Text="💬 Комментарий" Margin="0,0,0,4" FontSize="11" Foreground="#FF9CA3AF"/>
+                    <TextBox Text="{Binding NewCellComment}" AcceptsReturn="True"
+                             Height="70" TextWrapping="Wrap" Margin="0,0,0,18"/>
+
+                    <WrapPanel Orientation="Horizontal">
+                        <Button Content="💾 Сохранить" Command="{Binding SaveCellCommand}"
+                                Background="#FF10B981" MinWidth="110" Margin="0,0,8,0"/>
+                        <Button Content="❌ Отмена" Command="{Binding CancelEditCommand}"
+                                Background="#FF374151" MinWidth="110"/>
+                    </WrapPanel>
+
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="#FF4ADE80"
+                               Margin="0,14,0,0" FontSize="11" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
