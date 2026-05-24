@@ -1,4 +1,6 @@
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using AISPVZ.ViewModels;
 using Microsoft.Win32;
 using AISPVZ.Services;
@@ -16,6 +18,12 @@ public partial class StorageCellsWindow : Window
         DataContext = _viewModel;
 
         Loaded += async (s, e) => await _viewModel.LoadCellsCommand.ExecuteAsync(null);
+
+        _viewModel.CellDoubleClicked += cell =>
+        {
+            _viewModel.SelectedCell = cell;
+            _viewModel.StartEditCommand.Execute(null);
+        };
     }
 
     private async void ExportClick(object sender, RoutedEventArgs e)

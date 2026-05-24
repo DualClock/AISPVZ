@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using AISPVZ.Models;
 using AISPVZ.Services;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 namespace AISPVZ.ViewModels;
 
@@ -13,19 +14,22 @@ public partial class IssueOrderViewModel : ObservableObject
     private readonly ReferenceService _referenceService;
 
     [ObservableProperty]
-    private Order? _currentOrder;
-
-    [ObservableProperty]
     private Order? _selectedOrder;
 
     [ObservableProperty]
     private ObservableCollection<Order> _activeOrders = new();
 
     [ObservableProperty]
+    private ObservableCollection<OrderItemDisplay> _orderItems = new();
+
+    [ObservableProperty]
+    private OrderItemDisplay? _selectedOrderItem;
+
+    [ObservableProperty]
     private string _barcode = "";
 
     [ObservableProperty]
-    private bool _isOrderFound;
+    private bool _isOrderSelected;
 
     [ObservableProperty]
     private bool _isOverdue;
@@ -34,13 +38,13 @@ public partial class IssueOrderViewModel : ObservableObject
     private string _statusMessage = "";
 
     [ObservableProperty]
+    private bool _hasError;
+
+    [ObservableProperty]
     private bool _showConfirmation;
 
     [ObservableProperty]
-    private IssueResult? _pendingResult;
-
-    [ObservableProperty]
-    private ObservableCollection<OrderItemCheckViewModel> _itemChecks = new();
+    private string _confirmationMessage = "";
 
     [ObservableProperty]
     private string _selectedReturnReason = "";
@@ -48,8 +52,23 @@ public partial class IssueOrderViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<string> _returnReasons = new();
 
+    [ObservableProperty]
+    private bool _isReturnMode;
+
+    [ObservableProperty]
+    private string _windowTitle = "ВЫДАЧА ЗАКАЗА";
+
+    [ObservableProperty]
+    private string _windowSubtitle = "Выберите заказ из списка слева";
+
+    [ObservableProperty]
+    private string _itemsSummary = "";
+
     private int _currentShiftId;
     private int _currentEmployeeId;
+    private Employee? _currentEmployee;
+    private bool _isAdmin;
+    private IssueOperationType _pendingOperation;
 
     public event Action<bool>? OperationCompleted;
 
@@ -60,116 +79,256 @@ public partial class IssueOrderViewModel : ObservableObject
         _referenceService = new ReferenceService();
     }
 
-    public async Task InitializeAsync(int employeeId, int shiftId)
+    public async Task InitializeAsync(int employeeId, int shiftId, bool isAdmin = false, bool isReturnMode = false, Employee? currentEmployee = null)
     {
         _currentEmployeeId = employeeId;
         _currentShiftId = shiftId;
-        var reasons = await _referenceService.GetReturnReasonsAsync();
-        ReturnReasons = new ObservableCollection<string>(reasons);
+        _isAdmin = isAdmin;
+        _currentEmployee = currentEmployee;
+        IsReturnMode = isReturnMode;
+
+        if (isReturnMode)
+        {
+            WindowTitle = "ВОЗВРАТ ЗАКАЗА";
+            WindowSubtitle = "Выберите заказ и укажите причину возврата";
+        }
+
+        try
+        {
+            var reasons = await _referenceService.GetReturnReasonsAsync();
+            ReturnReasons = new ObservableCollection<string>(reasons);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "Ошибка загрузки причин: " + ex.Message;
+            HasError = true;
+        }
+
         await LoadActiveOrdersAsync();
     }
 
     private async Task LoadActiveOrdersAsync()
     {
-        var orders = await _orderService.GetActiveOrdersAsync();
-        ActiveOrders = new ObservableCollection<Order>(orders);
+        try
+        {
+            HasError = false;
+            StatusMessage = "";
+            var orders = await _orderService.GetActiveOrdersAsync();
+            ActiveOrders = new ObservableCollection<Order>(orders);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "Ошибка загрузки заказов: " + ex.Message;
+            HasError = true;
+        }
+    }
+
+    partial void OnSelectedOrderChanged(Order? value)
+    {
+        OrderItems.Clear();
+        SelectedOrderItem = null;
+        IsOrderSelected = false;
+        IsOverdue = false;
+        ItemsSummary = "";
+
+        if (value == null)
+        {
+            StatusMessage = "";
+            HasError = false;
+            return;
+        }
+
+        try
+        {
+            IsOrderSelected = true;
+            IsOverdue = value.CurrentStatus == OrderStatus.InStorage && value.PlannedIssueDate.Date < DateTime.Now.Date;
+
+            foreach (var item in value.Items)
+            {
+                OrderItems.Add(new OrderItemDisplay
+                {
+                    Id = item.Id,
+                    ProductName = item.ProductName,
+                    Quantity = item.Quantity,
+                    Price = item.Price,
+                    IsIssued = item.IsIssued,
+                    IsSelected = !item.IsIssued
+                });
+            }
+
+            var totalQty = value.Items.Sum(i => i.Quantity);
+            var totalSum = value.Items.Sum(i => i.Price * i.Quantity);
+            ItemsSummary = $"Позиций: {value.Items.Count} | Кол-во: {totalQty} шт. | Сумма: {totalSum:N2} ₽";
+
+            StatusMessage = "";
+            HasError = false;
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "Ошибка загрузки товаров: " + ex.Message;
+            HasError = true;
+        }
     }
 
     [RelayCommand]
     private async Task SearchByBarcodeAsync()
     {
-        if (string.IsNullOrWhiteSpace(Barcode)) return;
-
-        var order = await _orderService.GetByBarcodeAsync(Barcode);
-        if (order == null)
+        if (string.IsNullOrWhiteSpace(Barcode))
         {
-            StatusMessage = "Заказ не найден";
-            IsOrderFound = false;
+            StatusMessage = "Введите штрихкод";
+            HasError = true;
             return;
         }
 
-        CurrentOrder = order;
-        IsOrderFound = true;
-        IsOverdue = order.CurrentStatus == OrderStatus.InStorage && order.PlannedIssueDate.Date < DateTime.Now.Date;
-
-        ItemChecks = new ObservableCollection<OrderItemCheckViewModel>(
-            order.Items.Select(i => new OrderItemCheckViewModel
+        try
+        {
+            HasError = false;
+            var order = await _orderService.GetByBarcodeAsync(Barcode);
+            if (order == null)
             {
-                Item = i,
-                IsSelected = true
-            }));
+                StatusMessage = "Заказ не найден";
+                HasError = true;
+                return;
+            }
 
-        StatusMessage = "";
+            SelectedOrder = order;
+            Barcode = "";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "Ошибка поиска: " + ex.Message;
+            HasError = true;
+        }
     }
 
     [RelayCommand]
-    private void RequestFullIssue()
+    private void IssueFull()
     {
-        if (CurrentOrder == null) return;
-        if (CurrentOrder.CurrentStatus != OrderStatus.InStorage && CurrentOrder.CurrentStatus != OrderStatus.Accepted)
+        if (!ValidateBeforeIssue()) return;
+
+        _pendingOperation = IssueOperationType.FullIssue;
+        ConfirmationMessage = $"Выдать заказ {SelectedOrder!.Barcode} клиенту {SelectedOrder.Client?.FullName}?\nВсего позиций: {OrderItems.Count}";
+        ShowConfirmation = true;
+    }
+
+    [RelayCommand]
+    private void IssueSelected()
+    {
+        if (!ValidateBeforeIssue()) return;
+
+        var selected = OrderItems.Where(i => i.IsSelected && !i.IsIssued).ToList();
+        if (selected.Count == 0)
         {
-            StatusMessage = "Заказ не может быть выдан";
+            StatusMessage = "Выберите хотя бы один не выданный товар";
+            HasError = true;
             return;
         }
-        PendingResult = IssueResult.Issued;
+
+        _pendingOperation = IssueOperationType.PartialIssue;
+        var total = selected.Sum(i => i.Price * i.Quantity);
+        ConfirmationMessage = $"Частичная выдача: {selected.Count} поз. на сумму {total:N2} ₽";
         ShowConfirmation = true;
     }
 
     [RelayCommand]
-    private void RequestPartialIssue()
+    private void ProcessReturn()
     {
-        if (CurrentOrder == null) return;
-        PendingResult = IssueResult.Partial;
-        ShowConfirmation = true;
-    }
+        if (SelectedOrder == null)
+        {
+            StatusMessage = "Сначала выберите заказ";
+            HasError = true;
+            return;
+        }
 
-    [RelayCommand]
-    private void RequestRefuse()
-    {
-        if (CurrentOrder == null) return;
+        if (!ValidateShift()) return;
+
         if (string.IsNullOrWhiteSpace(SelectedReturnReason))
         {
             StatusMessage = "Выберите причину возврата";
+            HasError = true;
             return;
         }
-        PendingResult = IssueResult.Refused;
+
+        _pendingOperation = IssueOperationType.Return;
+        ConfirmationMessage = $"Оформить возврат заказа {SelectedOrder.Barcode}?\nПричина: {SelectedReturnReason}";
         ShowConfirmation = true;
     }
 
     [RelayCommand]
     private async Task ConfirmOperationAsync()
     {
-        if (CurrentOrder == null || !PendingResult.HasValue) return;
+        if (SelectedOrder == null || _currentShiftId == 0)
+        {
+            StatusMessage = "Ошибка: заказ не выбран или смена не открыта";
+            HasError = true;
+            ShowConfirmation = false;
+            return;
+        }
 
         try
         {
-            switch (PendingResult.Value)
+            switch (_pendingOperation)
             {
-                case IssueResult.Issued:
-                case IssueResult.Partial:
-                    var issuedItems = PendingResult.Value == IssueResult.Partial
-                        ? ItemChecks.Where(x => x.IsSelected).Select(x => x.Item).ToList()
-                        : null;
-                    var total = CurrentOrder.Items.Sum(i => i.Price * i.Quantity);
-                    await _orderService.IssueOrderAsync(CurrentOrder.Id, _currentEmployeeId, _currentShiftId,
-                        PendingResult.Value, total, null, issuedItems);
-                    StatusMessage = "Заказ выдан!";
+                case IssueOperationType.FullIssue:
+                    {
+                        var total = OrderItems.Sum(i => i.Price * i.Quantity);
+                        await _orderService.IssueOrderAsync(
+                            SelectedOrder.Id, _currentEmployeeId, _currentShiftId,
+                            IssueResult.Issued, total, null, null);
+                        StatusMessage = "✓ Заказ успешно выдан!";
+                        HasError = false;
+                    }
                     break;
 
-                case IssueResult.Refused:
-                    await _orderService.ReturnOrderAsync(CurrentOrder.Id, _currentEmployeeId, _currentShiftId, SelectedReturnReason);
-                    StatusMessage = "Возврат оформлен!";
+                case IssueOperationType.PartialIssue:
+                    {
+                        var selected = OrderItems.Where(i => i.IsSelected && !i.IsIssued).ToList();
+                        if (selected.Count == 0)
+                        {
+                            StatusMessage = "Ошибка: выберите товары для выдачи";
+                            HasError = true;
+                            ShowConfirmation = false;
+                            return;
+                        }
+
+                        var total = selected.Sum(i => i.Price * i.Quantity);
+                        var itemsToIssue = selected.Select(i => new OrderItem
+                        {
+                            Id = i.Id,
+                            ProductName = i.ProductName,
+                            Quantity = i.Quantity,
+                            Price = i.Price
+                        }).ToList();
+
+                        await _orderService.IssueOrderAsync(
+                            SelectedOrder.Id, _currentEmployeeId, _currentShiftId,
+                            IssueResult.Partial, total, null, itemsToIssue);
+                        StatusMessage = "✓ Частичная выдача оформлена!";
+                        HasError = false;
+                    }
+                    break;
+
+                case IssueOperationType.Return:
+                    await _orderService.ReturnOrderAsync(
+                        SelectedOrder.Id, _currentEmployeeId, _currentShiftId, SelectedReturnReason);
+                    StatusMessage = "✓ Возврат оформлен!";
+                    HasError = false;
                     break;
             }
 
             ShowConfirmation = false;
-            await Task.Delay(1500);
             OperationCompleted?.Invoke(true);
-            ClearForm();
+            await Task.Delay(1200);
+            await RefreshAfterOperationAsync();
         }
         catch (Exception ex)
         {
-            StatusMessage = "Ошибка: " + ex.Message;
+            var msg = ex.Message;
+            if (ex.InnerException != null)
+                msg += " | Inner: " + ex.InnerException.Message;
+            StatusMessage = "Ошибка операции: " + msg;
+            HasError = true;
+            ShowConfirmation = false;
         }
     }
 
@@ -177,29 +336,143 @@ public partial class IssueOrderViewModel : ObservableObject
     private void CancelConfirmation()
     {
         ShowConfirmation = false;
-        PendingResult = null;
     }
 
     [RelayCommand]
-    private void ClearForm()
+    private async Task PrintReceiptAsync()
     {
-        CurrentOrder = null;
-        IsOrderFound = false;
+        if (SelectedOrder == null) return;
+        try
+        {
+            if (_currentEmployee == null)
+            {
+                var refService = new ReferenceService();
+                var employees = await refService.GetAllEmployeesAsync();
+                _currentEmployee = employees.FirstOrDefault(e => e.Id == _currentEmployeeId);
+            }
+
+            var printService = new PrintService();
+            var total = OrderItems.Sum(i => i.Price * i.Quantity);
+            if (_currentEmployee != null)
+            {
+                printService.PrintIssueReceipt(SelectedOrder, _currentEmployee, total);
+                StatusMessage = "Чек отправлен на печать";
+                HasError = false;
+            }
+            else
+            {
+                StatusMessage = "Ошибка: сотрудник не найден";
+                HasError = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "Ошибка печати: " + ex.Message;
+            HasError = true;
+        }
+    }
+
+    private bool ValidateBeforeIssue()
+    {
+        if (SelectedOrder == null)
+        {
+            StatusMessage = "Сначала выберите заказ";
+            HasError = true;
+            return false;
+        }
+        if (SelectedOrder.CurrentStatus != OrderStatus.InStorage &&
+            SelectedOrder.CurrentStatus != OrderStatus.Accepted &&
+            SelectedOrder.CurrentStatus != OrderStatus.PartialIssued)
+        {
+            StatusMessage = "Заказ не может быть выдан (статус: " + SelectedOrder.CurrentStatus + ")";
+            HasError = true;
+            return false;
+        }
+        return ValidateShift();
+    }
+
+    private bool ValidateShift()
+    {
+        if (_currentShiftId == 0)
+        {
+            StatusMessage = "Ошибка: Смена не открыта!";
+            HasError = true;
+            return false;
+        }
+        return true;
+    }
+
+    private async Task RefreshAfterOperationAsync()
+    {
+        SelectedOrder = null;
+        OrderItems.Clear();
+        SelectedOrderItem = null;
+        IsOrderSelected = false;
         IsOverdue = false;
         Barcode = "";
         StatusMessage = "";
+        HasError = false;
         ShowConfirmation = false;
-        PendingResult = null;
-        ItemChecks.Clear();
-        SelectedReturnReason = "";
+        ItemsSummary = "";
+        await LoadActiveOrdersAsync();
     }
 }
 
-public partial class OrderItemCheckViewModel : ObservableObject
+public enum IssueOperationType
 {
-    [ObservableProperty]
-    private OrderItem _item = null!;
+    FullIssue,
+    PartialIssue,
+    Return
+}
 
-    [ObservableProperty]
+public class OrderItemDisplay : INotifyPropertyChanged
+{
     private bool _isSelected = true;
+    private bool _isIssued;
+    private int _quantity;
+    private decimal _price;
+    private string _productName = "";
+
+    public int Id { get; set; }
+
+    public string ProductName
+    {
+        get => _productName;
+        set { _productName = value; OnPropertyChanged(nameof(ProductName)); }
+    }
+
+    public int Quantity
+    {
+        get => _quantity;
+        set { _quantity = value; OnPropertyChanged(nameof(Quantity)); OnPropertyChanged(nameof(TotalPrice)); }
+    }
+
+    public decimal Price
+    {
+        get => _price;
+        set { _price = value; OnPropertyChanged(nameof(Price)); OnPropertyChanged(nameof(TotalPrice)); }
+    }
+
+    public bool IsIssued
+    {
+        get => _isIssued;
+        set { _isIssued = value; OnPropertyChanged(nameof(IsIssued)); OnPropertyChanged(nameof(StatusText)); }
+    }
+
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set { _isSelected = value; OnPropertyChanged(nameof(IsSelected)); }
+    }
+
+    public decimal TotalPrice => Price * Quantity;
+
+    public string StatusText => IsIssued ? "Выдан" : "На складе";
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
 }

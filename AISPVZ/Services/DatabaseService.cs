@@ -1,5 +1,6 @@
 using AISPVZ.Data.Context;
 using AISPVZ.Models;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
 
@@ -7,7 +8,6 @@ namespace AISPVZ.Services;
 
 public class DatabaseService
 {
-    private readonly string _dbPath;
     private readonly string _backupsFolder;
 
     public DatabaseService()
@@ -16,19 +16,15 @@ public class DatabaseService
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "AISPVZ");
         Directory.CreateDirectory(appDataFolder);
-        _dbPath = Path.Combine(appDataFolder, "aispvz.db");
         _backupsFolder = Path.Combine(appDataFolder, "Backups");
     }
 
-    public string DbPath => _dbPath;
-
-    public bool DatabaseExists => File.Exists(_dbPath);
-
     public async Task InitializeDatabaseAsync()
     {
-        if (!DatabaseExists)
+        using var db = new AppDbContext();
+        var created = await db.Database.EnsureCreatedAsync();
+        if (created)
         {
-            await CreateDatabaseAsync();
             await SeedDataAsync();
         }
     }
@@ -43,7 +39,6 @@ public class DatabaseService
     {
         using var db = new AppDbContext();
 
-        // Clear existing data in correct order (respecting FK constraints)
         db.OrderStatusHistories.RemoveRange(db.OrderStatusHistories);
         db.ReturnOperations.RemoveRange(db.ReturnOperations);
         db.IssueOperations.RemoveRange(db.IssueOperations);
@@ -56,19 +51,17 @@ public class DatabaseService
         db.SystemSettings.RemoveRange(db.SystemSettings);
         await db.SaveChangesAsync();
 
-        // 1. Employees
         var employees = new List<Employee>
         {
-            new() { FullName = "Иванов Иван Иванович", Login = "ivanov", PasswordHash = "hash_ivanov123", Role = EmployeeRole.Operator, IsActive = true },
-            new() { FullName = "Петрова Мария Сергеевна", Login = "petrova", PasswordHash = "hash_petrova456", Role = EmployeeRole.Admin, IsActive = true },
-            new() { FullName = "Сидоров Алексей Владимирович", Login = "sidorov", PasswordHash = "hash_sidorov789", Role = EmployeeRole.Operator, IsActive = true },
-            new() { FullName = "Козлова Екатерина Андреевна", Login = "kozlova", PasswordHash = "hash_kozlova321", Role = EmployeeRole.Operator, IsActive = true },
-            new() { FullName = "Морозов Дмитрий Петрович", Login = "morozov", PasswordHash = "hash_morozov654", Role = EmployeeRole.Operator, IsActive = false }
+            new() { FullName = "Иванов Иван Иванович", Login = "ivanov", PasswordHash = "ivanov123", Role = EmployeeRole.Operator, IsActive = true },
+            new() { FullName = "Петрова Мария Сергеевна", Login = "petrova", PasswordHash = "petrova123", Role = EmployeeRole.Admin, IsActive = true },
+            new() { FullName = "Сидоров Алексей Владимирович", Login = "sidorov", PasswordHash = "sidorov123", Role = EmployeeRole.Operator, IsActive = true },
+            new() { FullName = "Козлова Екатерина Андреевна", Login = "kozlova", PasswordHash = "kozlova123", Role = EmployeeRole.Operator, IsActive = true },
+            new() { FullName = "Морозов Дмитрий Петрович", Login = "morozov", PasswordHash = "morozov123", Role = EmployeeRole.Operator, IsActive = false }
         };
         db.Employees.AddRange(employees);
         await db.SaveChangesAsync();
 
-        // 2. Clients
         var clients = new List<Client>
         {
             new() { FullName = "ООО \"Рога и Копыта\"", Phone = "+7(495)123-45-67", Email = "info@roga.ru" },
@@ -83,10 +76,9 @@ public class DatabaseService
         db.Clients.AddRange(clients);
         await db.SaveChangesAsync();
 
-        // 3. StorageCells
         var cells = new List<StorageCell>
         {
-            new() { CellCode = "A-01", Zone = "A", IsBusy = false, MaxWeightKg = 30.0, Comment = "Мале��ькая ячейка" },
+            new() { CellCode = "A-01", Zone = "A", IsBusy = false, MaxWeightKg = 30.0, Comment = "Маленькая ячейка" },
             new() { CellCode = "A-02", Zone = "A", IsBusy = true, MaxWeightKg = 30.0, Comment = "Средняя ячейка" },
             new() { CellCode = "A-03", Zone = "A", IsBusy = false, MaxWeightKg = 50.0, Comment = "Большая ячейка" },
             new() { CellCode = "B-01", Zone = "B", IsBusy = true, MaxWeightKg = 100.0, Comment = "Для тяжелых грузов" },
@@ -100,7 +92,6 @@ public class DatabaseService
         db.StorageCells.AddRange(cells);
         await db.SaveChangesAsync();
 
-        // 4. Shifts (before Orders since they reference Employees)
         var shifts = new List<Shift>
         {
             new() { EmployeeId = 1, StartTime = DateTime.Now.AddHours(-8), EndTime = DateTime.Now, IsClosed = true },
@@ -113,24 +104,25 @@ public class DatabaseService
         db.Shifts.AddRange(shifts);
         await db.SaveChangesAsync();
 
-        // 5. Orders
         var orders = new List<Order>
         {
-            new() { ClientId = 1, CellId = 2, Barcode = "BARCODE001", Marketplace = Marketplace.Wildberries, CurrentStatus = OrderStatus.InStorage, ArrivedAt = DateTime.Now.AddDays(-10), PlannedIssueDate = DateTime.Now.AddDays(-5), IssuedAt = DateTime.Now.AddDays(-5), PhotoPath = "/photos/order1.jpg", Comment = "Срочный заказ" },
-            new() { ClientId = 2, CellId = 4, Barcode = "BARCODE002", Marketplace = Marketplace.Wildberries, CurrentStatus = OrderStatus.InStorage, ArrivedAt = DateTime.Now.AddDays(-8), PlannedIssueDate = DateTime.Now.AddDays(2), IssuedAt = null, PhotoPath = null, Comment = "Ожидает выдачи" },
-            new() { ClientId = 3, CellId = null, Barcode = "BARCODE003", Marketplace = Marketplace.YandexMarket, CurrentStatus = OrderStatus.Pending, ArrivedAt = DateTime.Now.AddDays(-3), PlannedIssueDate = DateTime.Now.AddDays(7), IssuedAt = null, PhotoPath = null, Comment = "Новый заказ" },
-            new() { ClientId = 4, CellId = 1, Barcode = "BARCODE004", Marketplace = Marketplace.Ozon, CurrentStatus = OrderStatus.Issued, ArrivedAt = DateTime.Now.AddDays(-15), PlannedIssueDate = DateTime.Now.AddDays(-10), IssuedAt = DateTime.Now.AddDays(-10), PhotoPath = "/photos/order4.jpg", Comment = "Выдан клиенту" },
-            new() { ClientId = 5, CellId = 5, Barcode = "BARCODE005", Marketplace = Marketplace.Wildberries, CurrentStatus = OrderStatus.Returned, ArrivedAt = DateTime.Now.AddDays(-20), PlannedIssueDate = DateTime.Now.AddDays(-15), IssuedAt = null, PhotoPath = "/photos/order5.jpg", Comment = "Возврат" },
+            new() { ClientId = 1, CellId = null, Barcode = "BARCODE001", Marketplace = Marketplace.Wildberries, CurrentStatus = OrderStatus.Issued, ArrivedAt = DateTime.Now.AddDays(-10), PlannedIssueDate = DateTime.Now.AddDays(-5), IssuedAt = DateTime.Now.AddDays(-5), PhotoPath = "/photos/order1.jpg", Comment = "Срочный заказ" },
+            new() { ClientId = 4, CellId = null, Barcode = "BARCODE004", Marketplace = Marketplace.Ozon, CurrentStatus = OrderStatus.Issued, ArrivedAt = DateTime.Now.AddDays(-15), PlannedIssueDate = DateTime.Now.AddDays(-10), IssuedAt = DateTime.Now.AddDays(-10), PhotoPath = "/photos/order4.jpg", Comment = "Выдан клиенту" },
+            new() { ClientId = 7, CellId = null, Barcode = "BARCODE008", Marketplace = Marketplace.Wildberries, CurrentStatus = OrderStatus.Issued, ArrivedAt = DateTime.Now.AddDays(-12), PlannedIssueDate = DateTime.Now.AddDays(-8), IssuedAt = DateTime.Now.AddDays(-8), PhotoPath = "/photos/order8.jpg", Comment = "Выдан" },
+
+            new() { ClientId = 2, CellId = 2, Barcode = "BARCODE002", Marketplace = Marketplace.Wildberries, CurrentStatus = OrderStatus.InStorage, ArrivedAt = DateTime.Now.AddDays(-8), PlannedIssueDate = DateTime.Now.AddDays(2), IssuedAt = null, PhotoPath = null, Comment = "Ожидает выдачи" },
             new() { ClientId = 1, CellId = 6, Barcode = "BARCODE006", Marketplace = Marketplace.YandexMarket, CurrentStatus = OrderStatus.InStorage, ArrivedAt = DateTime.Now.AddDays(-5), PlannedIssueDate = DateTime.Now.AddDays(5), IssuedAt = null, PhotoPath = null, Comment = "Ждет в ячейке" },
-            new() { ClientId = 6, CellId = null, Barcode = "BARCODE007", Marketplace = Marketplace.Ozon, CurrentStatus = OrderStatus.Pending, ArrivedAt = DateTime.Now.AddDays(-2), PlannedIssueDate = DateTime.Now.AddDays(8), IssuedAt = null, PhotoPath = null, Comment = "Только поступил" },
-            new() { ClientId = 7, CellId = 7, Barcode = "BARCODE008", Marketplace = Marketplace.Wildberries, CurrentStatus = OrderStatus.InStorage, ArrivedAt = DateTime.Now.AddDays(-12), PlannedIssueDate = DateTime.Now.AddDays(-8), IssuedAt = DateTime.Now.AddDays(-8), PhotoPath = "/photos/order8.jpg", Comment = "Выдан" },
             new() { ClientId = 8, CellId = 8, Barcode = "BARCODE009", Marketplace = Marketplace.YandexMarket, CurrentStatus = OrderStatus.InStorage, ArrivedAt = DateTime.Now.AddDays(-7), PlannedIssueDate = DateTime.Now.AddDays(3), IssuedAt = null, PhotoPath = null, Comment = "В обработке" },
+
+            new() { ClientId = 5, CellId = null, Barcode = "BARCODE005", Marketplace = Marketplace.Wildberries, CurrentStatus = OrderStatus.Returned, ArrivedAt = DateTime.Now.AddDays(-20), PlannedIssueDate = DateTime.Now.AddDays(-15), IssuedAt = null, PhotoPath = "/photos/order5.jpg", Comment = "Возврат" },
+
+            new() { ClientId = 3, CellId = null, Barcode = "BARCODE003", Marketplace = Marketplace.YandexMarket, CurrentStatus = OrderStatus.Pending, ArrivedAt = DateTime.Now.AddDays(-3), PlannedIssueDate = DateTime.Now.AddDays(7), IssuedAt = null, PhotoPath = null, Comment = "Новый заказ" },
+            new() { ClientId = 6, CellId = null, Barcode = "BARCODE007", Marketplace = Marketplace.Ozon, CurrentStatus = OrderStatus.Pending, ArrivedAt = DateTime.Now.AddDays(-2), PlannedIssueDate = DateTime.Now.AddDays(8), IssuedAt = null, PhotoPath = null, Comment = "Только поступил" },
             new() { ClientId = 2, CellId = null, Barcode = "BARCODE010", Marketplace = Marketplace.Ozon, CurrentStatus = OrderStatus.Pending, ArrivedAt = DateTime.Now.AddDays(-1), PlannedIssueDate = DateTime.Now.AddDays(9), IssuedAt = null, PhotoPath = null, Comment = "Срочно" }
         };
         db.Orders.AddRange(orders);
         await db.SaveChangesAsync();
 
-        // 6. OrderItems
         var items = new List<OrderItem>
         {
             new() { OrderId = 1, ProductName = "Смартфон Xiaomi Note 11", Quantity = 1, Price = 15000.00m, IsIssued = true },
@@ -152,7 +144,6 @@ public class DatabaseService
         db.OrderItems.AddRange(items);
         await db.SaveChangesAsync();
 
-        // 7. IssueOperations
         var issueOps = new List<IssueOperation>
         {
             new() { OrderId = 1, EmployeeId = 1, ShiftId = 1, IssueDateTime = DateTime.Now.AddDays(-5), Result = IssueResult.Issued, TotalAmount = 16000.00m, Comment = "Выдано полностью" },
@@ -164,7 +155,6 @@ public class DatabaseService
         db.IssueOperations.AddRange(issueOps);
         await db.SaveChangesAsync();
 
-        // 8. ReturnOperations
         var returnOps = new List<ReturnOperation>
         {
             new() { OrderId = 5, EmployeeId = 2, ShiftId = 2, Reason = "Товар не подошел по характеристикам", ReturnDateTime = DateTime.Now.AddDays(-18), ReturnToMarketplaceDate = DateTime.Now.AddDays(-15) },
@@ -175,11 +165,11 @@ public class DatabaseService
         db.ReturnOperations.AddRange(returnOps);
         await db.SaveChangesAsync();
 
-        // 9. OrderStatusHistory
         var histories = new List<OrderStatusHistory>
         {
             new() { OrderId = 1, OldStatus = OrderStatus.Pending, NewStatus = OrderStatus.Accepted, ChangedAt = DateTime.Now.AddDays(-9), EmployeeId = 1 },
             new() { OrderId = 1, OldStatus = OrderStatus.Accepted, NewStatus = OrderStatus.InStorage, ChangedAt = DateTime.Now.AddDays(-6), EmployeeId = 2 },
+            new() { OrderId = 1, OldStatus = OrderStatus.InStorage, NewStatus = OrderStatus.Issued, ChangedAt = DateTime.Now.AddDays(-5), EmployeeId = 1 },
             new() { OrderId = 2, OldStatus = OrderStatus.Pending, NewStatus = OrderStatus.Accepted, ChangedAt = DateTime.Now.AddDays(-7), EmployeeId = 3 },
             new() { OrderId = 3, OldStatus = OrderStatus.Pending, NewStatus = OrderStatus.Accepted, ChangedAt = DateTime.Now.AddDays(-2), EmployeeId = 1 },
             new() { OrderId = 4, OldStatus = OrderStatus.Pending, NewStatus = OrderStatus.Accepted, ChangedAt = DateTime.Now.AddDays(-14), EmployeeId = 2 },
@@ -189,19 +179,27 @@ public class DatabaseService
             new() { OrderId = 5, OldStatus = OrderStatus.Accepted, NewStatus = OrderStatus.InStorage, ChangedAt = DateTime.Now.AddDays(-17), EmployeeId = 2 },
             new() { OrderId = 5, OldStatus = OrderStatus.InStorage, NewStatus = OrderStatus.Returned, ChangedAt = DateTime.Now.AddDays(-16), EmployeeId = 1 },
             new() { OrderId = 8, OldStatus = OrderStatus.Pending, NewStatus = OrderStatus.Accepted, ChangedAt = DateTime.Now.AddDays(-11), EmployeeId = 3 },
-            new() { OrderId = 8, OldStatus = OrderStatus.Accepted, NewStatus = OrderStatus.InStorage, ChangedAt = DateTime.Now.AddDays(-9), EmployeeId = 2 }
+            new() { OrderId = 8, OldStatus = OrderStatus.Accepted, NewStatus = OrderStatus.InStorage, ChangedAt = DateTime.Now.AddDays(-9), EmployeeId = 2 },
+            new() { OrderId = 8, OldStatus = OrderStatus.InStorage, NewStatus = OrderStatus.Issued, ChangedAt = DateTime.Now.AddDays(-8), EmployeeId = 3 }
         };
         db.OrderStatusHistories.AddRange(histories);
         await db.SaveChangesAsync();
 
-        // 10. SystemSettings (using Key property from model)
         var settings = new List<SystemSetting>
         {
             new() { Key = "CompanyName", Value = "АИС ПВЗ", Description = "Название компании" },
             new() { Key = "WorkStartTime", Value = "09:00", Description = "Начало рабочего дня" },
             new() { Key = "WorkEndTime", Value = "21:00", Description = "Конец рабочего дня" },
             new() { Key = "MaxOrderWeight", Value = "30", Description = "Максимальный вес заказа в кг" },
-            new() { Key = "ReturnDays", Value = "14", Description = "Срок возврата товара в днях" }
+            new() { Key = "MaxStorageDays", Value = "7", Description = "Максимальный срок хранения в днях" },
+            new() { Key = "ReminderHoursBefore", Value = "24", Description = "Напоминание о просрочке за N часов" },
+            new() { Key = "ReturnDays", Value = "14", Description = "Срок возврата товара в днях" },
+            new() { Key = "AutoBackupEnabled", Value = "true", Description = "Автобэкап при закрытии" },
+            new() { Key = "Reason_1", Value = "Товар не подошел по характеристикам", Description = "Причина возврата" },
+            new() { Key = "Reason_2", Value = "Брак в товаре", Description = "Причина возврата" },
+            new() { Key = "Reason_3", Value = "Передумал покупать", Description = "Причина возврата" },
+            new() { Key = "Reason_4", Value = "Неверная комплектация", Description = "Причина возврата" },
+            new() { Key = "Reason_5", Value = "Ошибка маркетплейса", Description = "Причина возврата" }
         };
         db.SystemSettings.AddRange(settings);
         await db.SaveChangesAsync();
@@ -211,19 +209,16 @@ public class DatabaseService
     {
         try
         {
-            if (!DatabaseExists)
-                return false;
-
             Directory.CreateDirectory(_backupsFolder);
 
-            var fileName = customPath ?? Path.Combine(_backupsFolder, $"backup_{DateTime.Now:yyyyMMdd_HHmmss}.db");
+            var fileName = customPath ?? Path.Combine(_backupsFolder, $"backup_{DateTime.Now:yyyyMMdd_HHmmss}.bak");
+            var backupPath = Path.GetFullPath(fileName);
 
-            using var source = new FileStream(_dbPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            using var dest = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.None);
-            await source.CopyToAsync(dest);
+            using var db = new AppDbContext();
+            var sql = $"BACKUP DATABASE [AISPVZ_DB] TO DISK = '{backupPath.Replace("'", "''")}' WITH FORMAT, INIT;";
+            await db.Database.ExecuteSqlRawAsync(sql);
 
-            // Clean old backups (keep last 10)
-            var backups = Directory.GetFiles(_backupsFolder, "backup_*.db")
+            var backups = Directory.GetFiles(_backupsFolder, "backup_*.bak")
                 .OrderByDescending(f => f)
                 .Skip(10)
                 .ToList();
@@ -232,8 +227,9 @@ public class DatabaseService
 
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"Backup error: {ex}");
             return false;
         }
     }

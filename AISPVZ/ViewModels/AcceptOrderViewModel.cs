@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using AISPVZ.Models;
 using AISPVZ.Services;
 using System.Collections.ObjectModel;
-using System.Windows;
 
 namespace AISPVZ.ViewModels;
 
@@ -16,10 +15,7 @@ public partial class AcceptOrderViewModel : ObservableObject
     private string _barcode = "";
 
     [ObservableProperty]
-    private Marketplace _selectedMarketplace = Marketplace.Ozon;
-
-    [ObservableProperty]
-    private string _autoCellZone = "A";
+    private string _marketplaceName = "";
 
     [ObservableProperty]
     private Client? _selectedClient;
@@ -37,22 +33,19 @@ public partial class AcceptOrderViewModel : ObservableObject
     private StorageCell? _selectedCell;
 
     [ObservableProperty]
-    private DateTime _plannedIssueDate = DateTime.Now.AddDays(3);
+    private string _comment = "";
 
     [ObservableProperty]
-    private string _comment = "";
+    private int _plannedStorageDays = 7;
 
     [ObservableProperty]
     private ObservableCollection<OrderItemViewModel> _items = new();
 
     [ObservableProperty]
-    private ObservableCollection<StorageCell> _availableCells = new();
-
-    [ObservableProperty]
     private ObservableCollection<StorageCell> _freeCells = new();
 
     [ObservableProperty]
-    private bool _isSearching;
+    private bool _isAddingItem;
 
     [ObservableProperty]
     private string _itemsCountText = "Нет товаров";
@@ -61,9 +54,6 @@ public partial class AcceptOrderViewModel : ObservableObject
     private string _totalAmountText = "Итого: 0 ₽";
 
     // New item form fields
-    [ObservableProperty]
-    private bool _isAddingItem;
-
     [ObservableProperty]
     private string _newItemArticle = "";
 
@@ -77,10 +67,10 @@ public partial class AcceptOrderViewModel : ObservableObject
     private string _newItemPrice = "";
 
     [ObservableProperty]
-    private string _addItemButtonText = "+ Добавить товар";
+    private string _statusMessage = "";
 
-    // Toast event - raised instead of setting StatusMessage
-    public event Action<string, string, bool>? ShowToastNotification;
+    [ObservableProperty]
+    private bool _isLoading;
 
     public event Action<bool>? OperationCompleted;
 
@@ -88,6 +78,12 @@ public partial class AcceptOrderViewModel : ObservableObject
     {
         _orderService = new OrderService();
         _referenceService = new ReferenceService();
+    }
+
+    public async Task LoadDataAsync()
+    {
+        var cells = await _referenceService.GetFreeCellsAsync();
+        FreeCells = new ObservableCollection<StorageCell>(cells);
     }
 
     private void UpdateSummary()
@@ -104,25 +100,8 @@ public partial class AcceptOrderViewModel : ObservableObject
             }
         }
 
-        if (Items.Count == 0)
-        {
-            ItemsCountText = "Нет товаров";
-        }
-        else
-        {
-            ItemsCountText = $"{Items.Count} поз. • {totalQty} шт.";
-        }
+        ItemsCountText = Items.Count == 0 ? "Нет товаров" : $"{Items.Count} поз. • {totalQty} шт.";
         TotalAmountText = $"Итого: {totalSum:N2} ₽";
-    }
-
-    [RelayCommand]
-    public async Task LoadDataAsync()
-    {
-        var cells = await _referenceService.GetAllCellsAsync();
-        AvailableCells = new ObservableCollection<StorageCell>(cells);
-
-        var freeCells = await _referenceService.GetFreeCellsAsync();
-        FreeCells = new ObservableCollection<StorageCell>(freeCells);
     }
 
     [RelayCommand]
@@ -130,7 +109,8 @@ public partial class AcceptOrderViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(ClientPhone)) return;
 
-        IsSearching = true;
+        IsLoading = true;
+        StatusMessage = "Поиск...";
         try
         {
             var client = await _orderService.FindClientByPhoneAsync(ClientPhone);
@@ -139,36 +119,21 @@ public partial class AcceptOrderViewModel : ObservableObject
                 SelectedClient = client;
                 ClientName = client.FullName;
                 ClientEmail = client.Email ?? "";
-                ShowToastNotification?.Invoke("👤 Клиент найден", $"Загружены данные для {client.FullName}", true);
+                StatusMessage = $"Найден: {client.FullName}";
             }
             else
             {
-                ShowToastNotification?.Invoke("⚠ Не найден", "Клиент с таким телефоном не найден", false);
+                SelectedClient = null;
+                StatusMessage = "Не найден. Буд��т создан новый.";
             }
         }
         catch (Exception ex)
         {
-            ShowToastNotification?.Invoke("Ошибка", ex.Message, false);
+            StatusMessage = "Ошибка: " + ex.Message;
         }
         finally
         {
-            IsSearching = false;
-        }
-    }
-
-    [RelayCommand]
-    private async Task AssignAutoCellAsync()
-    {
-        var cells = await _referenceService.GetFreeCellsAsync(AutoCellZone);
-        var firstFree = cells.FirstOrDefault();
-        if (firstFree != null)
-        {
-            SelectedCell = firstFree;
-            ShowToastNotification?.Invoke("📦 Ячейка назначена", $"Ячейка {firstFree.CellCode} в зоне {firstFree.Zone}", true);
-        }
-        else
-        {
-            ShowToastNotification?.Invoke("⚠ Нет свободных", $"Нет свободных ячеек в зоне {AutoCellZone}", false);
+            IsLoading = false;
         }
     }
 
@@ -184,21 +149,20 @@ public partial class AcceptOrderViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(NewItemName))
         {
-            ShowToastNotification?.Invoke("⚠ Внимание", "Введите наименование товара", false);
+            StatusMessage = "Введите наименование товара";
             return;
         }
 
         int qty = 1;
         if (!int.TryParse(NewItemQuantity, out qty) || qty < 1)
         {
-            ShowToastNotification?.Invoke("⚠ Внимание", "Введите корректное количество", false);
+            StatusMessage = "Введите корректное количество";
             return;
         }
 
         decimal price = 0;
         if (!string.IsNullOrWhiteSpace(NewItemPrice))
         {
-            // Support both comma and dot decimal separators
             var normalized = NewItemPrice.Replace(',', '.').Trim();
             if (!decimal.TryParse(normalized, System.Globalization.NumberStyles.Any,
                 System.Globalization.CultureInfo.InvariantCulture, out price))
@@ -221,6 +185,7 @@ public partial class AcceptOrderViewModel : ObservableObject
 
         IsAddingItem = false;
         ClearNewItemFields();
+        StatusMessage = "";
     }
 
     [RelayCommand]
@@ -263,64 +228,110 @@ public partial class AcceptOrderViewModel : ObservableObject
     [RelayCommand]
     private async Task SaveOrderAsync()
     {
+        await SaveOrderInternalAsync(print: false);
+    }
+
+    [RelayCommand]
+    private async Task SaveAndPrintOrderAsync()
+    {
+        await SaveOrderInternalAsync(print: true);
+    }
+
+    private async Task SaveOrderInternalAsync(bool print)
+    {
         // Validation
         if (string.IsNullOrWhiteSpace(Barcode))
         {
-            ShowToastNotification?.Invoke("⚠ Внимание", "Введите штрихкод заказа", false);
+            StatusMessage = "Введите штрихкод заказа";
             return;
         }
 
         if (string.IsNullOrWhiteSpace(ClientName))
         {
-            ShowToastNotification?.Invoke("⚠ Внимание", "Введите ФИО клиента", false);
+            StatusMessage = "Введите ФИО клиента";
             return;
         }
 
         if (!Items.Any())
         {
-            ShowToastNotification?.Invoke("⚠ Внимание", "Добавьте хотя бы один товар", false);
+            StatusMessage = "Добавьте хотя бы один товар";
             return;
         }
 
+        IsLoading = true;
+        StatusMessage = "Сохранение...";
+
         try
         {
-            var client = SelectedClient ?? new Client
+            // Prepare items - ensure ProductName is never empty
+            var itemsList = Items
+                .Where(i => !string.IsNullOrWhiteSpace(i.ProductName))
+                .Select(i => new OrderItem
+                {
+                    ProductName = string.IsNullOrWhiteSpace(i.ProductName) ? "Товар" : i.ProductName,
+                    Article = i.Article ?? "",
+                    Quantity = Math.Max(1, i.Quantity),
+                    Price = i.Price
+                }).ToList();
+
+            if (itemsList.Count == 0)
             {
-                FullName = ClientName,
-                Phone = ClientPhone,
-                Email = ClientEmail
-            };
+                StatusMessage = "Добавьте хотя бы один товар";
+                IsLoading = false;
+                return;
+            }
 
-            var order = new Order
+            // Get max storage days from settings
+            var maxDaysSetting = await _referenceService.GetSettingAsync("MaxStorageDays");
+            int maxDays = int.TryParse(maxDaysSetting, out var md) ? md : 7;
+
+            // Call service with simple parameters - NO entity navigation properties
+            var resultBarcode = await _orderService.CreateOrderSimpleAsync(
+                clientName: ClientName,
+                clientPhone: ClientPhone,
+                clientEmail: ClientEmail,
+                cellId: SelectedCell?.Id,
+                barcode: Barcode,
+                marketplace: ParseMarketplace(MarketplaceName),
+                comment: Comment,
+                items: itemsList,
+                maxStorageDays: maxDays
+            );
+
+            StatusMessage = "Заказ принят! Штрихкод: " + resultBarcode;
+
+            if (print)
             {
-                Client = client,
-                CellId = SelectedCell?.Id,
-                Barcode = Barcode,
-                Marketplace = SelectedMarketplace,
-                PlannedIssueDate = PlannedIssueDate,
-                Comment = Comment,
-                CurrentStatus = OrderStatus.InStorage
-            };
-
-            var items = Items.Select(i => new OrderItem
-            {
-                ProductName = i.ProductName,
-                Article = i.Article,
-                Quantity = i.Quantity,
-                Price = i.Price
-            }).ToList();
-
-            await _orderService.CreateOrderAsync(order, items);
-
-            ShowToastNotification?.Invoke("✓ Успешно", "Заказ принят!", true);
+                // Load full order for printing
+                var order = await _orderService.GetByBarcodeAsync(resultBarcode);
+                if (order != null)
+                {
+                    var printService = new PrintService();
+                    printService.PrintAcceptReceipt(order);
+                }
+            }
 
             OperationCompleted?.Invoke(true);
-
+            await Task.Delay(1500);
             ClearForm();
         }
         catch (Exception ex)
         {
-            ShowToastNotification?.Invoke("❌ Ошибка", "Ошибка сохранения: " + ex.Message, false);
+            var msg = ex.Message;
+            if (ex.InnerException != null)
+                msg += " | Inner: " + ex.InnerException.Message;
+            if (ex is Microsoft.EntityFrameworkCore.DbUpdateException dbEx && dbEx.Entries != null)
+            {
+                foreach (var entry in dbEx.Entries)
+                {
+                    msg += $" | Entity: {entry.Entity.GetType().Name}, State: {entry.State}";
+                }
+            }
+            StatusMessage = "Ошибка: " + msg;
+        }
+        finally
+        {
+            IsLoading = false;
         }
     }
 
@@ -328,23 +339,28 @@ public partial class AcceptOrderViewModel : ObservableObject
     private void ClearForm()
     {
         Barcode = "";
+        MarketplaceName = "";
         SelectedClient = null;
         ClientName = "";
         ClientPhone = "";
         ClientEmail = "";
         SelectedCell = null;
-        PlannedIssueDate = DateTime.Now.AddDays(3);
         Comment = "";
         Items.Clear();
         IsAddingItem = false;
         ClearNewItemFields();
         UpdateSummary();
+        StatusMessage = "";
     }
 
-    [RelayCommand]
-    private void Cancel()
+    private static Models.Marketplace ParseMarketplace(string name)
     {
-        Application.Current.MainWindow?.Activate();
+        if (string.IsNullOrWhiteSpace(name)) return Models.Marketplace.Other;
+        var lower = name.Trim().ToLower();
+        if (lower.Contains("ozon")) return Models.Marketplace.Ozon;
+        if (lower.Contains("wildber") || lower.Contains("wb")) return Models.Marketplace.Wildberries;
+        if (lower.Contains("yandex") || lower.Contains("яндекс")) return Models.Marketplace.YandexMarket;
+        return Models.Marketplace.Other;
     }
 }
 
@@ -360,30 +376,14 @@ public partial class OrderItemViewModel : ObservableObject
     public int Quantity
     {
         get => _quantity;
-        set
-        {
-            if (_quantity != value)
-            {
-                _quantity = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(TotalPrice));
-            }
-        }
+        set { _quantity = value; OnPropertyChanged(); OnPropertyChanged(nameof(TotalPrice)); }
     }
 
     private decimal _price = 0;
     public decimal Price
     {
         get => _price;
-        set
-        {
-            if (_price != value)
-            {
-                _price = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(TotalPrice));
-            }
-        }
+        set { _price = value; OnPropertyChanged(); OnPropertyChanged(nameof(TotalPrice)); }
     }
 
     public decimal TotalPrice => Quantity * Price;

@@ -17,6 +17,9 @@ public partial class StorageCellsViewModel : ObservableObject
     private StorageCell? _selectedCell;
 
     [ObservableProperty]
+    private string _searchText = "";
+
+    [ObservableProperty]
     private string _filterZone = "";
 
     [ObservableProperty]
@@ -40,7 +43,14 @@ public partial class StorageCellsViewModel : ObservableObject
     [ObservableProperty]
     private string _statusMessage = "";
 
+    [ObservableProperty]
+    private bool _showVisualScheme;
+
+    [ObservableProperty]
+    private ObservableCollection<StorageCell> _schemeCells = new();
+
     public event Action? DataChanged;
+    public event Action<StorageCell>? CellDoubleClicked;
 
     public StorageCellsViewModel()
     {
@@ -50,16 +60,45 @@ public partial class StorageCellsViewModel : ObservableObject
     [RelayCommand]
     private async Task LoadCellsAsync()
     {
-        var cells = await _referenceService.GetAllCellsAsync();
-        ApplyFilter(cells);
+        try
+        {
+            StatusMessage = "";
+            var cells = await _referenceService.GetAllCellsAsync();
+            ApplyFilter(cells);
+            SchemeCells = new ObservableCollection<StorageCell>(cells.OrderBy(c => c.Zone).ThenBy(c => c.CellCode));
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "Ошибка загрузки: " + ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private void ToggleVisualScheme()
+    {
+        ShowVisualScheme = !ShowVisualScheme;
+    }
+
+    [RelayCommand]
+    private void OnCellDoubleClick(StorageCell cell)
+    {
+        CellDoubleClicked?.Invoke(cell);
     }
 
     private void ApplyFilter(List<StorageCell> allCells)
     {
         var filtered = allCells.AsEnumerable();
 
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            var q = SearchText.Trim().ToLowerInvariant();
+            filtered = filtered.Where(c =>
+                c.CellCode.ToLowerInvariant().Contains(q) ||
+                (c.Comment?.ToLowerInvariant().Contains(q) ?? false));
+        }
+
         if (!string.IsNullOrWhiteSpace(FilterZone))
-            filtered = filtered.Where(c => c.Zone.Equals(FilterZone, StringComparison.OrdinalIgnoreCase));
+            filtered = filtered.Where(c => c.Zone.Equals(FilterZone.Trim(), StringComparison.OrdinalIgnoreCase));
 
         if (FilterBusyOnly)
             filtered = filtered.Where(c => c.IsBusy);
@@ -68,10 +107,24 @@ public partial class StorageCellsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task ApplyFilterCommand()
+    private async Task DoApplyFilterAsync()
     {
-        var cells = await _referenceService.GetAllCellsAsync();
-        ApplyFilter(cells);
+        await LoadCellsAsync();
+    }
+
+    partial void OnSearchTextChanged(string value)
+    {
+        _ = DoApplyFilterAsync();
+    }
+
+    partial void OnFilterZoneChanged(string value)
+    {
+        _ = DoApplyFilterAsync();
+    }
+
+    partial void OnFilterBusyOnlyChanged(bool value)
+    {
+        _ = DoApplyFilterAsync();
     }
 
     [RelayCommand]
@@ -83,17 +136,23 @@ public partial class StorageCellsViewModel : ObservableObject
         NewCellMaxWeight = 30;
         NewCellComment = "";
         IsEditing = true;
+        StatusMessage = "";
     }
 
     [RelayCommand]
     private void StartEdit()
     {
-        if (SelectedCell == null) return;
+        if (SelectedCell == null)
+        {
+            StatusMessage = "Выберите ячейку для редактирования";
+            return;
+        }
         NewCellCode = SelectedCell.CellCode;
         NewCellZone = SelectedCell.Zone;
         NewCellMaxWeight = SelectedCell.MaxWeightKg;
         NewCellComment = SelectedCell.Comment ?? "";
         IsEditing = true;
+        StatusMessage = "";
     }
 
     [RelayCommand]
@@ -109,8 +168,8 @@ public partial class StorageCellsViewModel : ObservableObject
         {
             if (SelectedCell != null)
             {
-                SelectedCell.CellCode = NewCellCode;
-                SelectedCell.Zone = NewCellZone;
+                SelectedCell.CellCode = NewCellCode.Trim();
+                SelectedCell.Zone = NewCellZone.Trim();
                 SelectedCell.MaxWeightKg = NewCellMaxWeight;
                 SelectedCell.Comment = NewCellComment;
                 await _referenceService.UpdateCellAsync(SelectedCell);
@@ -120,8 +179,8 @@ public partial class StorageCellsViewModel : ObservableObject
             {
                 var cell = new StorageCell
                 {
-                    CellCode = NewCellCode,
-                    Zone = NewCellZone,
+                    CellCode = NewCellCode.Trim(),
+                    Zone = NewCellZone.Trim(),
                     MaxWeightKg = NewCellMaxWeight,
                     Comment = NewCellComment
                 };
@@ -135,7 +194,7 @@ public partial class StorageCellsViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            StatusMessage = "Ошибка: " + ex.Message;
+            StatusMessage = "Ошибка сохранения: " + ex.Message;
         }
     }
 
@@ -143,5 +202,6 @@ public partial class StorageCellsViewModel : ObservableObject
     private void CancelEdit()
     {
         IsEditing = false;
+        StatusMessage = "";
     }
 }

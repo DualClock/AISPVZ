@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using AISPVZ.Models;
-using System.IO;
 
 namespace AISPVZ.Data.Context;
 
@@ -17,31 +16,26 @@ public class AppDbContext : DbContext
     public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
 
-    private static string DbPath
-    {
-        get
-        {
-            var folder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "AISPVZ");
-            Directory.CreateDirectory(folder);
-            return Path.Combine(folder, "aispvz.db");
-        }
-    }
-
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
-        var appDataFolder = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "AISPVZ");
-        Directory.CreateDirectory(appDataFolder);
-        var dbPath = Path.Combine(appDataFolder, "aispvz.db");
-        options.UseSqlite($"Data Source={dbPath}");
+        options.UseSqlServer(@"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=AISPVZ_DB;Integrated Security=True;Persist Security Info=False;Pooling=False;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=True;Application Name=""AISPVZ"";Command Timeout=30");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Unique indexes
+        
+        modelBuilder.Entity<Employee>().ToTable("Employees");
+        modelBuilder.Entity<Client>().ToTable("Clients");
+        modelBuilder.Entity<StorageCell>().ToTable("StorageCells");
+        modelBuilder.Entity<Order>().ToTable("Orders");
+        modelBuilder.Entity<OrderItem>().ToTable("OrderItems");
+        modelBuilder.Entity<Shift>().ToTable("Shifts");
+        modelBuilder.Entity<IssueOperation>().ToTable("IssueOperations");
+        modelBuilder.Entity<ReturnOperation>().ToTable("ReturnOperations");
+        modelBuilder.Entity<OrderStatusHistory>().ToTable("OrderStatusHistory");
+        modelBuilder.Entity<SystemSetting>().ToTable("SystemSettings");
+
+        
         modelBuilder.Entity<Employee>()
             .HasIndex(e => e.Login)
             .IsUnique();
@@ -72,6 +66,10 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<OrderItem>()
+            .Property(oi => oi.Price)
+            .HasColumnType("decimal(18,2)");
+
+        modelBuilder.Entity<OrderItem>()
             .HasOne(oi => oi.Order)
             .WithMany(o => o.Items)
             .HasForeignKey(oi => oi.OrderId)
@@ -96,6 +94,10 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<IssueOperation>()
+            .Property(io => io.TotalAmount)
+            .HasColumnType("decimal(18,2)");
+
+        modelBuilder.Entity<IssueOperation>()
             .HasOne(io => io.Employee)
             .WithMany(e => e.IssueOperations)
             .HasForeignKey(io => io.EmployeeId)
@@ -111,6 +113,12 @@ public class AppDbContext : DbContext
             .HasOne(ro => ro.Employee)
             .WithMany(e => e.ReturnOperations)
             .HasForeignKey(ro => ro.EmployeeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ReturnOperation>()
+            .HasOne(ro => ro.Shift)
+            .WithMany(s => s.ReturnOperations)
+            .HasForeignKey(ro => ro.ShiftId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

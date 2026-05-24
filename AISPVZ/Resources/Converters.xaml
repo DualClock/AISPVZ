@@ -1,0 +1,19 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:converters="clr-namespace:AISPVZ.Converters">
+
+    <converters:BoolToVisibilityConverter x:Key="BoolToVisConv"/>
+    <converters:InverseBoolToVisibilityConverter x:Key="InvBoolToVisConv"/>
+    <converters:NullToVisibilityConverter x:Key="NullToVisConv"/>
+    <converters:CellStatusToColorConverter x:Key="CellStatusToColorConv"/>
+    <converters:CellStatusToBoolConverter x:Key="CellStatusToBoolConv"/>
+    <converters:RoleToTextConverter x:Key="RoleToTextConv"/>
+    <converters:MarketplaceToTextConverter x:Key="MarketplaceToTextConv"/>
+    <converters:OrderStatusToTextConverter x:Key="OrderStatusToTextConv"/>
+    <converters:RoleToTextConverter x:Key="BoolToActiveTextConv"/>
+    <converters:CellStatusToColorConverter x:Key="BoolToStatusColorConv"/>
+    <converters:NullToTextConverter x:Key="NullToTextConv"/>
+    <converters:OrderStatusToColorConverter x:Key="OrderStatusColorConv"/>
+
+    <SolidColorBrush x:Key="SystemAccentColorBrush" Color="#6366F1"/>
+</ResourceDictionary>

@@ -6,7 +6,6 @@ namespace AISPVZ.Services;
 
 public class ReferenceService
 {
-    // Storage Cells
     public async Task<List<StorageCell>> GetAllCellsAsync()
     {
         using var db = new AppDbContext();
@@ -43,7 +42,6 @@ public class ReferenceService
         await db.SaveChangesAsync();
     }
 
-    // Employees
     public async Task<List<Employee>> GetAllEmployeesAsync()
     {
         using var db = new AppDbContext();
@@ -82,7 +80,6 @@ public class ReferenceService
         }
     }
 
-    // Clients
     public async Task<List<Client>> GetAllClientsAsync()
     {
         using var db = new AppDbContext();
@@ -115,7 +112,6 @@ public class ReferenceService
         await db.SaveChangesAsync();
     }
 
-    // System Settings
     public async Task<string?> GetSettingAsync(string key)
     {
         using var db = new AppDbContext();
@@ -146,9 +142,24 @@ public class ReferenceService
     public async Task<List<string>> GetReturnReasonsAsync()
     {
         using var db = new AppDbContext();
-        return await db.SystemSettings
+        var reasons = await db.SystemSettings
             .Where(s => s.Key.StartsWith("Reason_"))
             .Select(s => s.Value)
             .ToListAsync();
+
+        if (reasons.Count == 0)
+        {
+            reasons = new List<string>
+            {
+                "Брак/повреждение",
+                "Не соответствует описанию",
+                "Отказ клиента",
+                "Ошибка комплектации",
+                "Просрочен срок хранения",
+                "Другое"
+            };
+        }
+
+        return reasons;
     }
 }

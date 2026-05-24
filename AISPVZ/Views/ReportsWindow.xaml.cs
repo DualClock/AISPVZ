@@ -13,7 +13,10 @@ public partial class ReportsWindow : Window
         _viewModel = new ReportsViewModel();
         _viewModel.SetContext(employeeId, shiftId);
         DataContext = _viewModel;
+    }
 
-        Loaded += async (s, e) => await _viewModel.LoadClosedShiftsCommand.ExecuteAsync(null);
+    private async void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.LoadDashboardCommand.ExecuteAsync(null);
     }
 }

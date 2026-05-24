@@ -11,20 +11,28 @@ public class AuthService
     private const int LockoutMinutes = 5;
 
     private static readonly Dictionary<string, (int attempts, DateTime? lockedUntil)> _failedAttempts = new();
+    private static readonly object _lockObj = new();
 
     public async Task<Employee> LoginAsync(string login, string password)
     {
-        ClearExpiredLockouts();
+        string key = login.ToLower();
 
-        var key = login.ToLower();
-        if (_failedAttempts.TryGetValue(key, out var info) && info.lockedUntil.HasValue)
+        lock (_lockObj)
         {
-            if (DateTime.Now < info.lockedUntil.Value)
+            ClearExpiredLockouts();
+        }
+
+        lock (_lockObj)
+        {
+            if (_failedAttempts.TryGetValue(key, out var info) && info.lockedUntil.HasValue)
             {
-                var remaining = (info.lockedUntil.Value - DateTime.Now).Minutes + 1;
-                throw new AuthenticationException($"Учётная запись заблокирована. Попробуйте через {remaining} мин.");
+                if (DateTime.Now < info.lockedUntil.Value)
+                {
+                    var remaining = (info.lockedUntil.Value - DateTime.Now).Minutes + 1;
+                    throw new AuthenticationException($"Учётная запись заблокирована. Попробуйте через {remaining} мин.");
+                }
+                _failedAttempts.Remove(key);
             }
-            _failedAttempts.Remove(key);
         }
 
         using var db = new AppDbContext();
@@ -32,12 +40,18 @@ public class AuthService
 
         if (employee == null || employee.PasswordHash != password)
         {
-            RecordFailedAttempt(key);
-            var attemptsLeft = MaxFailedAttempts - (_failedAttempts.TryGetValue(key, out var i) ? i.attempts : 0);
-            throw new AuthenticationException($"Неверный логин или пароль. Осталось попыток: {attemptsLeft}");
+            lock (_lockObj)
+            {
+                RecordFailedAttempt(key);
+                var attemptsLeft = MaxFailedAttempts - (_failedAttempts.TryGetValue(key, out var i) ? i.attempts : 0);
+                throw new AuthenticationException($"Неверный логин или пароль. Осталось попыток: {attemptsLeft}");
+            }
         }
 
-        _failedAttempts.Remove(key);
+        lock (_lockObj)
+        {
+            _failedAttempts.Remove(key);
+        }
         return employee;
     }
 

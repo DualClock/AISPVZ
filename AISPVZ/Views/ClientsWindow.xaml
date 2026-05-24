@@ -1,89 +1,10 @@
 <Window x:Class="AISPVZ.Views.ClientsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Клиенты" Height="650" Width="1000"
+        Title="Клиенты" Height="700" Width="1100"
         WindowStartupLocation="CenterScreen"
-        Background="#FF1E1E2E"
-        MinWidth="850" MinHeight="500">
-
-    <Window.Resources>
-        <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="13"/>
-        </Style>
-
-        <Style TargetType="Button">
-            <Setter Property="Padding" Value="12,8"/>
-            <Setter Property="Margin" Value="4,0"/>
-            <Setter Property="Background" Value="#FF6366F1"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="MinHeight" Value="32"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Opacity" Value="0.85"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style TargetType="TextBox">
-            <Setter Property="Background" Value="#FF2D2D44"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="8,6"/>
-            <Setter Property="CaretBrush" Value="White"/>
-            <Setter Property="FontSize" Value="12"/>
-        </Style>
-
-        <!-- DataGrid Styles -->
-        <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#FF1F2937"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Padding" Value="14,12"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="BorderThickness" Value="0"/>
-        </Style>
-
-        <Style TargetType="DataGridRow">
-            <Setter Property="Background" Value="#FF1F2937"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="MinHeight" Value="50"/>
-            <Style.Triggers>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#FF6366F1"/>
-                </Trigger>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#FF2D2D44"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style TargetType="DataGridCell">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-        </Style>
-
-        <Style TargetType="DataGrid">
-            <Setter Property="Background" Value="#FF1F2937"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="RowBackground" Value="#FF1F2937"/>
-            <Setter Property="AlternatingRowBackground" Value="#FF2D2D44"/>
-            <Setter Property="GridLinesVisibility" Value="None"/>
-            <Setter Property="HeadersVisibility" Value="Column"/>
-            <Setter Property="SelectionMode" Value="Single"/>
-            <Setter Property="CanUserAddRows" Value="False"/>
-            <Setter Property="IsReadOnly" Value="True"/>
-            <Setter Property="RowHeight" Value="50"/>
-        </Style>
-    </Window.Resources>
+        MinWidth="850" MinHeight="500"
+        Background="{StaticResource BackgroundBrush}">
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
@@ -94,20 +15,24 @@
 
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,16">
-            <TextBlock Text="👥 КЛИЕНТЫ" FontSize="22" FontWeight="Bold"/>
-            <TextBlock Text="Управление базой клиентов" FontSize="11" Foreground="#FF6B7280" Margin="0,5,0,0"/>
+            <TextBlock Text="КЛИЕНТЫ" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBlock Text="Управление базой клиентов" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
         </StackPanel>
 
         <!-- Search and Actions -->
-        <Border Grid.Row="1" Background="#FF1F2937" CornerRadius="10" Padding="12" Margin="0,0,0,16">
+        <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" 
+                CornerRadius="8" Padding="12" Margin="0,0,0,16">
             <WrapPanel Orientation="Horizontal">
                 <TextBox Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
-                         Width="280" Margin="0,0,8,0" MinWidth="150"/>
-                <Button Content="🔍 Поиск" Command="{Binding SearchCommand}" Background="#FF6366F1" Margin="0,0,8,0"/>
-                <Button Content="➕ Добавить" Command="{Binding StartAddCommand}" Background="#FF10B981" Margin="0,0,8,0"/>
-                <Button Content="✏️ Изменить" Command="{Binding StartEditCommand}" Background="#FF3B82F6" Margin="0,0,8,0"/>
-                <Button Content="📦 Заказы" Command="{Binding ShowClientOrdersCommand}" Background="#FFF59E0B" Margin="0,0,8,0"/>
-                <Button Content="📎 Экспорт" Background="#FF4B5563" Click="ExportClick"/>
+                         Width="280"
+                         ToolTip="Поиск по ФИО или телефону..."
+                         Margin="0,0,8,0"/>
+                <Button Content="Поиск" Command="{Binding SearchCommand}" Style="{StaticResource AccentButtonStyle}"/>
+                <Button Content="Добавить" Command="{Binding StartAddCommand}" Style="{StaticResource DefaultButtonStyle}"/>
+                <Button Content="Изменить" Command="{Binding StartEditCommand}" Style="{StaticResource DefaultButtonStyle}"/>
+                <Button Content="Заказы" Command="{Binding ShowClientOrdersCommand}" Style="{StaticResource DefaultButtonStyle}"/>
+                <Button Content="Экспорт" Style="{StaticResource ButtonRevealStyle}" Click="ExportClick"/>
+                <Button Content="Excel" Style="{StaticResource ButtonRevealStyle}" Click="ExportExcelClick"/>
             </WrapPanel>
         </Border>
 
@@ -115,7 +40,7 @@
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="380"/>
+                <ColumnDefinition Width="400"/>
             </Grid.ColumnDefinitions>
 
             <!-- Clients Table -->
@@ -123,9 +48,11 @@
                       ItemsSource="{Binding Clients}"
                       SelectedItem="{Binding SelectedClient}"
                       AutoGenerateColumns="False"
-                      Margin="0,0,12,0">
+                      Margin="0,0,12,0"
+                      CanUserAddRows="False"
+                      IsReadOnly="True">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="70">
+                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="FontWeight" Value="Bold"/>
@@ -139,34 +66,42 @@
             </DataGrid>
 
             <!-- Right Panels Stack -->
-            <StackPanel Grid.Column="1" Margin="0,0,0,0">
+            <StackPanel Grid.Column="1">
 
                 <!-- Edit Panel -->
-                <Border Background="#FF1F2937" CornerRadius="10" Padding="18" Margin="0,0,0,16"
+                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="18"
                         Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisConv}}">
                     <StackPanel>
-                        <TextBlock Text="📝 ДАННЫЕ КЛИЕНТА" FontSize="15" FontWeight="Bold" Margin="0,0,0,14"/>
+                        <TextBlock Text="ДАННЫЕ КЛИЕНТА" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
 
-                        <TextBlock Text="ФИО *" Margin="0,0,0,4" FontSize="11" Foreground="#FF9CA3AF"/>
-                        <TextBox Text="{Binding FullName}" Margin="0,0,0,14"/>
+                        <TextBlock Text="ФИО *" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,12,0,4"/>
+                        <TextBox Text="{Binding FullName}"
+                                 ToolTip="Фамилия Имя Отчество"
+                                 Margin="0,0,0,12"/>
 
-                        <TextBlock Text="Телефон" Margin="0,0,0,4" FontSize="11" Foreground="#FF9CA3AF"/>
-                        <TextBox Text="{Binding Phone}" Margin="0,0,0,14"/>
+                        <TextBlock Text="Телефон" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding Phone}"
+                                 ToolTip="+7 (999) 999-99-99"
+                                 helpers:PhoneMaskBehavior.IsEnabled="True"
+                                 xmlns:helpers="clr-namespace:AISPVZ.Helpers"
+                                 Margin="0,0,0,12"/>
 
-                        <TextBlock Text="Email" Margin="0,0,0,4" FontSize="11" Foreground="#FF9CA3AF"/>
-                        <TextBox Text="{Binding Email}" Margin="0,0,0,18"/>
+                        <TextBlock Text="Email" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding Email}"
+                                 ToolTip="email@example.com"
+                                 Margin="0,0,0,12"/>
 
-                        <WrapPanel Orientation="Horizontal">
-                            <Button Content="💾 Сохранить" Command="{Binding SaveClientCommand}" Background="#FF10B981" MinWidth="100"/>
-                            <Button Content="❌ Отмена" Command="{Binding CancelEditCommand}" Background="#FF374151" MinWidth="100"/>
-                        </WrapPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Сохранить" Command="{Binding SaveClientCommand}" Style="{StaticResource AccentButtonStyle}"/>
+                            <Button Content="Отмена" Command="{Binding CancelEditCommand}" Style="{StaticResource ButtonRevealStyle}"/>
+                        </StackPanel>
 
-                        <TextBlock Text="{Binding StatusMessage}" Foreground="#FF4ADE80" Margin="0,14,0,0" FontSize="11"/>
+                        <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontSize="11"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Client Orders Panel -->
-                <Border Background="#FF1F2937" CornerRadius="10" Padding="18"
+                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="18"
                         Visibility="{Binding ShowOrders, Converter={StaticResource BoolToVisConv}}">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -179,31 +114,26 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="📋 ЗАКАЗЫ КЛИЕНТА" FontSize="14" FontWeight="Bold" Grid.Column="0"/>
-                            <Button Content="✖️" Command="{Binding HideOrdersCommand}"
-                                    Background="Transparent" Padding="8,0" FontSize="14"
-                                    BorderThickness="0" Foreground="#FF9CA3AF"
-                                    Grid.Column="1"/>
+                            <TextBlock Text="ЗАКАЗЫ КЛИЕНТА" FontSize="14" FontWeight="SemiBold" Grid.Column="0" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <Button Grid.Column="1" Command="{Binding HideOrdersCommand}"
+                                    Style="{StaticResource ButtonRevealStyle}" Content="&#xE711;" FontFamily="Segoe MDL2 Assets" Padding="8,4"/>
                         </Grid>
 
-                        <ListBox Grid.Row="1" ItemsSource="{Binding ClientOrders}"
-                                 Background="Transparent" BorderThickness="0"
-                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                 MaxHeight="350">
-                            <ListBox.ItemTemplate>
+                        <ListView Grid.Row="1" ItemsSource="{Binding ClientOrders}"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                  MaxHeight="350">
+                            <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="#FF2D2D44" CornerRadius="8" Padding="14" Margin="0,0,0,10">
-                                        <StackPanel>
-                                            <TextBlock Text="{Binding Barcode}" FontWeight="Bold" FontSize="14" FontFamily="Consolas" Margin="0,0,0,6"/>
-                                            <TextBlock Text="{Binding CurrentStatus, Converter={StaticResource OrderStatusToTextConv}}"
-                                                       Foreground="#FF6366F1" FontSize="12" Margin="0,0,0,4"/>
-                                            <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"
-                                                       Foreground="#FF9CA3AF" FontSize="11"/>
-                                        </StackPanel>
-                                    </Border>
+                                    <StackPanel Margin="0,6">
+                                        <TextBlock Text="{Binding Barcode}" FontWeight="Bold" FontSize="14" FontFamily="Consolas" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="{Binding CurrentStatus, Converter={StaticResource OrderStatusToTextConv}}"
+                                                   Foreground="{StaticResource AccentBrush}" FontSize="12"/>
+                                        <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"
+                                                   Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"/>
+                                    </StackPanel>
                                 </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
+                            </ListView.ItemTemplate>
+                        </ListView>
                     </Grid>
                 </Border>
             </StackPanel>

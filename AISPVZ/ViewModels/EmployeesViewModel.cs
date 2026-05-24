@@ -29,6 +29,13 @@ public partial class EmployeesViewModel : ObservableObject
     private EmployeeRole _selectedRole = EmployeeRole.Operator;
 
     [ObservableProperty]
+    private Dictionary<EmployeeRole, string> _roleOptions = new()
+    {
+        { EmployeeRole.Operator, "Оператор" },
+        { EmployeeRole.Admin, "Администратор" }
+    };
+
+    [ObservableProperty]
     private bool _isEditing;
 
     [ObservableProperty]

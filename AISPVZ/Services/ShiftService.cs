@@ -16,7 +16,6 @@ public class ShiftService
     {
         using var db = new AppDbContext();
 
-        // Close any existing open shifts
         var existingShifts = await db.Shifts.Where(s => s.EmployeeId == employeeId && !s.IsClosed).ToListAsync();
         foreach (var existingShift in existingShifts)
         {

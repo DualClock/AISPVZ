@@ -1,126 +1,10 @@
 <Window x:Class="AISPVZ.Views.StorageCellsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Управление ячейками" Height="650" Width="1000"
+        Title="Управление ячейками" Height="700" Width="1100"
         MinWidth="800" MinHeight="450"
         WindowStartupLocation="CenterScreen"
-        Background="#FF1E1E2E">
-
-    <Window.Resources>
-        <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="13"/>
-        </Style>
-
-        <Style TargetType="Button">
-            <Setter Property="Padding" Value="14,10"/>
-            <Setter Property="Margin" Value="4,0"/>
-            <Setter Property="Background" Value="#FF6366F1"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="MinHeight" Value="36"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Opacity" Value="0.85"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style TargetType="TextBox">
-            <Setter Property="Background" Value="#FF2D2D44"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#FF3D3D5C"/>
-            <Setter Property="Padding" Value="8,6"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="CaretBrush" Value="White"/>
-        </Style>
-
-        <Style TargetType="ComboBox">
-            <Setter Property="Background" Value="#FF2D2D44"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#FF3D3D5C"/>
-            <Setter Property="Padding" Value="8,6"/>
-            <Setter Property="FontSize" Value="12"/>
-        </Style>
-
-        <Style TargetType="ComboBoxItem">
-            <Setter Property="Background" Value="#FF2D2D44"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Padding" Value="10,8"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#FF6366F1"/>
-                </Trigger>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#FF6366F1"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style TargetType="CheckBox">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="10,0,0,0"/>
-        </Style>
-
-        <Style TargetType="Separator">
-            <Setter Property="Background" Value="#FF374151"/>
-            <Setter Property="Width" Value="1"/>
-            <Setter Property="Margin" Value="10,5"/>
-        </Style>
-
-        <!-- DataGrid Styles -->
-        <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#FF1F2937"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Padding" Value="14,12"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="BorderThickness" Value="0"/>
-        </Style>
-
-        <Style TargetType="DataGridRow">
-            <Setter Property="Background" Value="#FF1F2937"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="MinHeight" Value="48"/>
-            <Style.Triggers>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#FF6366F1"/>
-                </Trigger>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#FF2D2D44"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style TargetType="DataGridCell">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-        </Style>
-
-        <Style TargetType="DataGrid">
-            <Setter Property="Background" Value="#FF1F2937"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="RowBackground" Value="#FF1F2937"/>
-            <Setter Property="AlternatingRowBackground" Value="#FF2D2D44"/>
-            <Setter Property="GridLinesVisibility" Value="None"/>
-            <Setter Property="HeadersVisibility" Value="Column"/>
-            <Setter Property="SelectionMode" Value="Single"/>
-            <Setter Property="CanUserAddRows" Value="False"/>
-            <Setter Property="IsReadOnly" Value="True"/>
-            <Setter Property="RowHeight" Value="48"/>
-        </Style>
-    </Window.Resources>
+        Background="{StaticResource BackgroundBrush}">
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
@@ -131,28 +15,34 @@
 
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,16">
-            <TextBlock Text="📋 УПРАВЛЕНИЕ ЯЧЕЙКАМИ" FontSize="22" FontWeight="Bold"/>
-            <TextBlock Text="Управление ячейками хранения" FontSize="11" Foreground="#FF6B7280" Margin="0,5,0,0"/>
+            <TextBlock Text="УПРАВЛЕНИЕ ЯЧЕЙКАМИ" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBlock Text="Управление ячейками хранения" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
         </StackPanel>
 
         <!-- Filter Panel -->
-        <Border Grid.Row="1" Background="#FF1F2937" CornerRadius="10" Padding="12" Margin="0,0,0,16">
+        <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" 
+                CornerRadius="8" Padding="12" Margin="0,0,0,16">
             <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <Button Content="➕ Добавить" Command="{Binding StartAddCommand}" Background="#FF10B981" Margin="0,0,8,0"/>
-                <Button Content="✏️ Изменить" Command="{Binding StartEditCommand}" Background="#FF3B82F6" Margin="0,0,8,0"/>
+                <Button Content="Добавить" Command="{Binding StartAddCommand}" Style="{StaticResource AccentButtonStyle}"/>
+                <Button Content="Изменить" Command="{Binding StartEditCommand}" Style="{StaticResource DefaultButtonStyle}"/>
 
-                <Separator/>
+                <Rectangle Width="1" Fill="{StaticResource DividerBrush}" Margin="10,5"/>
 
-                <TextBlock Text="Зона:" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="12"/>
+                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Width="140"
+                         ToolTip="Поиск по коду или комментарию..."
+                         Margin="0,0,8,0"/>
+
                 <TextBox Text="{Binding FilterZone, UpdateSourceTrigger=PropertyChanged}"
-                         Width="100" Margin="0,0,15,0"/>
+                         Width="80"
+                         ToolTip="Фильтр по зоне..."
+                         Margin="0,0,8,0"/>
 
-                <CheckBox Content="🔒 Только занятые" IsChecked="{Binding FilterBusyOnly}"
-                          Foreground="White" Margin="0,0,15,0"/>
+                <CheckBox Content="Только занятые" IsChecked="{Binding FilterBusyOnly, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
 
-                <Button Content="🔍 Применить фильтр" Command="{Binding ApplyFilterCommand}"
-                        Background="#FF374151" Margin="0,0,8,0"/>
-                <Button Content="📎 Экспорт в CSV" Background="#FF4B5563" Click="ExportClick"/>
+                <Button Content="Применить" Command="{Binding DoApplyFilterCommand}" Style="{StaticResource DefaultButtonStyle}"/>
+                <Button Content="CSV" Style="{StaticResource ButtonRevealStyle}" Click="ExportClick"/>
+                <Button Content="Схема" Command="{Binding ToggleVisualSchemeCommand}" Style="{StaticResource DefaultButtonStyle}"/>
             </WrapPanel>
         </Border>
 
@@ -163,12 +53,51 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
+            <!-- Visual Scheme -->
+            <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" 
+                    CornerRadius="8" Padding="16"
+                    Visibility="{Binding ShowVisualScheme, Converter={StaticResource BoolToVisConv}}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding SchemeCells}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Width="90" Height="70" Margin="4"
+                                        Background="{Binding IsBusy, Converter={StaticResource CellStatusToColorConv}}"
+                                        Foreground="White" BorderThickness="0"
+                                        Command="{Binding DataContext.OnCellDoubleClickCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="4">
+                                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding CellCode}" FontWeight="Bold" FontSize="13" HorizontalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding Zone}" FontSize="10" Opacity="0.8" HorizontalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding MaxWeightKg, StringFormat='{}{0}кг'}" FontSize="9" Opacity="0.7" HorizontalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+
             <!-- Cells Table -->
             <DataGrid Grid.Column="0"
+                      Visibility="{Binding ShowVisualScheme, Converter={StaticResource InvBoolToVisConv}}"
                       ItemsSource="{Binding Cells}"
                       SelectedItem="{Binding SelectedCell}"
                       AutoGenerateColumns="False"
-                      MinHeight="380">
+                      MinHeight="380"
+                      CanUserAddRows="False"
+                      IsReadOnly="True">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="КОД ЯЧЕЙКИ" Binding="{Binding CellCode}" Width="160">
                         <DataGridTextColumn.ElementStyle>
@@ -202,50 +131,105 @@
             </DataGrid>
 
             <!-- Edit Panel -->
-            <Border Grid.Column="1" Background="#FF1F2937" CornerRadius="12" Padding="18"
-                    Width="340" Margin="12,0,0,0"
+            <Border Grid.Column="1" Background="{StaticResource SurfaceBrush}" 
+                    CornerRadius="8" Padding="18" Width="340" Margin="12,0,0,0"
                     Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisConv}}">
                 <StackPanel>
-                    <Grid Margin="0,0,0,14">
+                    <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0"
-                                   Text="{Binding SelectedCell.Id, Converter={StaticResource NullToTextConv}, FallbackValue='➕ НОВАЯ ЯЧЕЙКА'}"
-                                   FontSize="16" FontWeight="Bold" Foreground="#FF6366F1"/>
-                        <Button Grid.Column="1" Content="✖️" Command="{Binding CancelEditCommand}"
-                                Background="Transparent" Foreground="#FF9CA3AF"
-                                Padding="8,4" Margin="0" FontSize="14"/>
+                                   Text="{Binding SelectedCell.Id, Converter={StaticResource NullToTextConv}, FallbackValue='НОВАЯ ЯЧЕЙКА'}"
+                                   FontSize="16" FontWeight="Bold" Foreground="{StaticResource AccentBrush}"/>
+                        <Button Grid.Column="1" Command="{Binding CancelEditCommand}"
+                                Style="{StaticResource ButtonRevealStyle}" Content="&#xE711;" FontFamily="Segoe MDL2 Assets" Padding="8,4"/>
                     </Grid>
 
-                    <TextBlock Text="📦 Код ячейки *" Margin="0,0,0,4" FontSize="11" Foreground="#FF9CA3AF"/>
-                    <TextBox Text="{Binding NewCellCode}" Margin="0,0,0,14"/>
+                    <TextBlock Text="Код ячейки *" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,12,0,4"/>
+                    <TextBox Text="{Binding NewCellCode, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="A-01"
+                             Margin="0,0,0,12"/>
 
-                    <TextBlock Text="🗄️ Зона" Margin="0,0,0,4" FontSize="11" Foreground="#FF9CA3AF"/>
-                    <ComboBox SelectedItem="{Binding NewCellZone}" Margin="0,0,0,14">
-                        <ComboBoxItem Content="A - Основная"/>
-                        <ComboBoxItem Content="B - Боковая"/>
-                        <ComboBoxItem Content="C - Складская"/>
+                    <TextBlock Text="Зона" 
+           FontSize="11" 
+           Foreground="{StaticResource TextSecondaryBrush}" 
+           Margin="0,0,0,4"/>
+
+                    <ComboBox Text="{Binding NewCellZone, UpdateSourceTrigger=PropertyChanged}"
+          IsEditable="True"
+          Margin="0,0,0,12"
+          Background="White"
+          Foreground="Black">
+
+                        <ComboBox.Resources>
+                            <!-- Стиль для редактируемого текстового поля -->
+                            <Style TargetType="TextBox">
+                                <Setter Property="Background" Value="White"/>
+                                <Setter Property="Foreground" Value="Black"/>
+                                <Setter Property="SelectionBrush" Value="#0078D4"/>
+                                <Setter Property="SelectionOpacity" Value="0.5"/>
+                            </Style>
+
+                            <!-- Стиль для элементов выпадающего списка -->
+                            <Style TargetType="ComboBoxItem">
+                                <Setter Property="Background" Value="White"/>
+                                <Setter Property="Foreground" Value="Black"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsHighlighted" Value="True">
+                                        <Setter Property="Background" Value="#E6F0FA"/>
+                                        <Setter Property="Foreground" Value="Black"/>
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="#0078D4"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+
+                            <!-- Системные цвета для выпадающего окна -->
+                            <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="White"/>
+                            <SolidColorBrush x:Key="{x:Static SystemColors.WindowTextBrushKey}" Color="Black"/>
+                        </ComboBox.Resources>
+
+                        <ComboBoxItem Content="A"/>
+                        <ComboBoxItem Content="B"/>
+                        <ComboBoxItem Content="C"/>
                     </ComboBox>
 
-                    <TextBlock Text="⚖️ Макс. вес (кг)" Margin="0,0,0,4" FontSize="11" Foreground="#FF9CA3AF"/>
-                    <TextBox Text="{Binding NewCellMaxWeight}" Margin="0,0,0,14"
-                             ToolTip="Максимальный вес груза в килограммах"/>
+                    <TextBlock Text="Макс. вес (кг)" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding NewCellMaxWeight, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="30"
+                             Margin="0,0,0,12"/>
 
-                    <TextBlock Text="💬 Комментарий" Margin="0,0,0,4" FontSize="11" Foreground="#FF9CA3AF"/>
-                    <TextBox Text="{Binding NewCellComment}" AcceptsReturn="True"
-                             Height="70" TextWrapping="Wrap" Margin="0,0,0,18"/>
+                    <TextBlock Text="Комментарий" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding NewCellComment, UpdateSourceTrigger=PropertyChanged}" 
+                             ToolTip="Дополнительная информация"
+                             AcceptsReturn="True"
+                             Height="70" TextWrapping="Wrap"
+                             Margin="0,0,0,12"/>
 
-                    <WrapPanel Orientation="Horizontal">
-                        <Button Content="💾 Сохранить" Command="{Binding SaveCellCommand}"
-                                Background="#FF10B981" MinWidth="110" Margin="0,0,8,0"/>
-                        <Button Content="❌ Отмена" Command="{Binding CancelEditCommand}"
-                                Background="#FF374151" MinWidth="110"/>
-                    </WrapPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Сохранить" Command="{Binding SaveCellCommand}" Style="{StaticResource AccentButtonStyle}"/>
+                        <Button Content="Отмена" Command="{Binding CancelEditCommand}" Style="{StaticResource ButtonRevealStyle}"/>
+                    </StackPanel>
 
-                    <TextBlock Text="{Binding StatusMessage}" Foreground="#FF4ADE80"
-                               Margin="0,14,0,0" FontSize="11" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontSize="11" TextWrapping="Wrap">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding StatusMessage}" Value="">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding StatusMessage}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                 </StackPanel>
             </Border>
         </Grid>

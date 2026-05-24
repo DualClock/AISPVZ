@@ -37,4 +37,19 @@ public partial class ClientsWindow : Window
             MessageBox.Show("Экспорт завершён!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
+
+    private void ExportExcelClick(object sender, RoutedEventArgs e)
+    {
+        var dialog = new SaveFileDialog
+        {
+            Filter = "Excel files (*.xlsx)|*.xlsx",
+            FileName = $"clients_{DateTime.Now:yyyyMMdd}"
+        };
+        if (dialog.ShowDialog() == true)
+        {
+            var export = new ExportService();
+            export.ExportToExcel(_viewModel.Clients, dialog.FileName, "Клиенты");
+            MessageBox.Show("Экспорт завершён!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
 }

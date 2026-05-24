@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init)",
+      "Bash(git add README.md .gitignore)",
+      "Bash(git commit -m \"Initial commit: add README and .gitignore\")",
+      "Bash(git add AISPVZ/*.csproj AISPVZ/*.xaml AISPVZ/*.xaml.cs AISPVZ/AssemblyInfo.cs AISPVZ/Converters/ AISPVZ/Data/ AISPVZ/Helpers/ AISPVZ/Models/ AISPVZ/Resources/ AISPVZ/Services/ AISPVZ/ViewModels/ AISPVZ/Views/ *.slnx README.md .gitignore)",
+      "Bash(git commit -m \"Add WPF application source code with MVVM architecture\")",
+      "Bash(git branch -M main)",
+      "Bash(dotnet restore)",
+      "Bash(dotnet build --no-restore)",
+      "Bash(dotnet build)",
+      "Bash(dir c:\\\\Users\\\\Nikita\\\\source\\\\repos\\\\AISPVZ\\\\AISPVZ\\\\obj\\\\)",
+      "Bash(dotnet build AISPVZ/AISPVZ.csproj)",
+      "Bash(git add README.md)",
+      "Bash(git commit:*)",
+      "Bash(git push origin main)",
+      "Bash(git add setup.ps1)",
+      "Bash(git add -A)"
+    ]
+  }
+}

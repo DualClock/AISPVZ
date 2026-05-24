@@ -30,14 +30,12 @@ public class ExportService
         var properties = typeof(T).GetProperties();
         var headers = properties.Select(p => p.Name).ToArray();
 
-        // Header row
         for (int i = 0; i < headers.Length; i++)
         {
             ws.Cell(1, i + 1).Value = headers[i];
             ws.Cell(1, i + 1).Style.Font.Bold = true;
         }
 
-        // Data rows
         var row = 2;
         foreach (var item in data)
         {

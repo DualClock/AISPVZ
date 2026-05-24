@@ -9,7 +9,7 @@ public partial class IssueOrderWindow : Window
     private readonly IssueOrderViewModel _viewModel;
     private readonly bool _isReturnMode;
 
-    public IssueOrderWindow(int employeeId, int shiftId, Models.Order? order = null, bool isReturnMode = false)
+    public IssueOrderWindow(int employeeId, int shiftId, bool isAdmin = false, Models.Order? order = null, bool isReturnMode = false, Models.Employee? currentEmployee = null)
     {
         InitializeComponent();
 
@@ -33,7 +33,7 @@ public partial class IssueOrderWindow : Window
 
         Loaded += async (s, e) =>
         {
-            await _viewModel.InitializeAsync(employeeId, shiftId);
+            await _viewModel.InitializeAsync(employeeId, shiftId, isAdmin, isReturnMode, currentEmployee);
             if (order != null)
             {
                 _viewModel.Barcode = order.Barcode;
@@ -47,7 +47,15 @@ public partial class IssueOrderWindow : Window
     {
         if (e.Key == Key.Enter)
         {
-            _viewModel.SearchByBarcodeCommand.Execute(null);
+            _ = _viewModel.SearchByBarcodeCommand.ExecuteAsync(null);
+        }
+    }
+
+    private void Window_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+        {
+            Close();
         }
     }
 

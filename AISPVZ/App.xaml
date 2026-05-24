@@ -1,39 +1,13 @@
 <Application x:Class="AISPVZ.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:converters="clr-namespace:AISPVZ.Converters"
              StartupUri="Views/LoginWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
-            <!-- Converters -->
-            <converters:BoolToVisConverter x:Key="BoolToVisConv"/>
-            <converters:InvBoolToVisConverter x:Key="InvBoolToVisConv"/>
-            <converters:NullToVisConverter x:Key="NullToVisConv"/>
-            <converters:CellStatusToColorConv x:Key="CellStatusToColorConv"/>
-            <converters:CellStatusToBoolConv x:Key="CellStatusToBoolConv"/>
-            <converters:RoleToTextConv x:Key="RoleToTextConv"/>
-            <converters:MarketplaceToTextConv x:Key="MarketplaceToTextConv"/>
-            <converters:OrderStatusToTextConv x:Key="OrderStatusToTextConv"/>
-            <converters:BoolToActiveTextConv x:Key="BoolToActiveTextConv"/>
-            <converters:BoolToStatusColorConv x:Key="BoolToStatusColorConv"/>
-            <converters:NullToTextConv x:Key="NullToTextConv"/>
-            <converters:OrderStatusColorConv x:Key="OrderStatusColorConv"/>
-
-            <!-- Global Styles -->
-            <Style TargetType="Window">
-                <Setter Property="Background" Value="#FF1E1E2E"/>
-            </Style>
-
-            <!-- Dark Theme Styles -->
-            <SolidColorBrush x:Key="DarkBackground" Color="#FF1E1E2E"/>
-            <SolidColorBrush x:Key="DarkSurface" Color="#FF1F2937"/>
-            <SolidColorBrush x:Key="DarkCard" Color="#FF2D2D44"/>
-            <SolidColorBrush x:Key="AccentPrimary" Color="#FF6366F1"/>
-            <SolidColorBrush x:Key="AccentSuccess" Color="#FF10B981"/>
-            <SolidColorBrush x:Key="AccentWarning" Color="#FFF59E0B"/>
-            <SolidColorBrush x:Key="AccentDanger" Color="#FFEF4444"/>
-            <SolidColorBrush x:Key="TextPrimary" Color="#FFFFFFFF"/>
-            <SolidColorBrush x:Key="TextSecondary" Color="#FF9CA3AF"/>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Theme.xaml"/>
+                <ResourceDictionary Source="Resources/Converters.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

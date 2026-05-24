@@ -1,667 +1,332 @@
 <Window x:Class="AISPVZ.Views.AcceptOrderWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:models="clr-namespace:AISPVZ.Models"
         Title="Приёмка заказа"
-        MinHeight="700" MinWidth="900"
+        MinHeight="700" MinWidth="1100"
         WindowStartupLocation="CenterScreen"
-        Background="#1E1E2E"
-        FontFamily="Segoe UI">
+        Background="{StaticResource BackgroundBrush}">
 
-    <Window.Resources>
-        <Storyboard x:Key="PulseAnimation">
-            <DoubleAnimation Storyboard.TargetName="AcceptButton"
-                           Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
-                           From="1" To="1.03" Duration="0:0:0.15" AutoReverse="True"/>
-            <DoubleAnimation Storyboard.TargetName="AcceptButton"
-                           Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
-                           From="1" To="1.03" Duration="0:0:0.15" AutoReverse="True"/>
-        </Storyboard>
+    <Grid Margin="20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="380"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        <Storyboard x:Key="RowFadeIn">
-            <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                           From="0" To="1" Duration="0:0:0.25"/>
-            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
-                           From="-10" To="0" Duration="0:0:0.25"/>
-        </Storyboard>
+       
+        <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="20" Margin="0,0,16,0">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock Text="ПРИЁМКА ЗАКАЗА" FontSize="16" FontWeight="Bold" Margin="0,0,0,16" Foreground="{StaticResource TextPrimaryBrush}"/>
 
-        <!-- Base text style -->
-        <Style x:Key="BaseText" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="13"/>
-        </Style>
+                    
+                    <TextBlock Text="ШТРИХКОД ЗАКАЗА *" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                    <TextBox x:Name="BarcodeInput"
+                             Text="{Binding Barcode, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Введите или отсканируйте штрихкод"
+                             FontSize="14" FontFamily="Consolas"
+                             Margin="0,0,0,14"/>
 
-        <!-- Label style -->
-        <Style x:Key="FieldLabel" TargetType="TextBlock" BasedOn="{StaticResource BaseText}">
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Foreground" Value="#9CA3AF"/>
-            <Setter Property="Margin" Value="0,0,0,4"/>
-        </Style>
+                    <!-- Marketplace -->
+                    <TextBlock Text="МАРКЕТПЛЕЙС" 
+           FontSize="10" 
+           FontWeight="SemiBold" 
+           Foreground="{StaticResource TextSecondaryBrush}" 
+           Margin="0,0,0,4"/>
 
-        <!-- Required field label -->
-        <Style x:Key="RequiredLabel" TargetType="TextBlock" BasedOn="{StaticResource FieldLabel}">
-            <Setter Property="Foreground" Value="#EF4444"/>
-        </Style>
+                    <ComboBox Text="{Binding MarketplaceName}"
+          IsEditable="True"
+          ToolTip="Выберите или введите маркетплейс"
+          Margin="0,0,0,14"
+          Background="White"
+          Foreground="Black">
 
-        <!-- Card border -->
-        <Style x:Key="CardBorder" TargetType="Border">
-            <Setter Property="Background" Value="#252538"/>
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Padding" Value="16"/>
-            <Setter Property="Margin" Value="0,0,0,10"/>
-        </Style>
+                        <!-- Стиль для редактируемого текстового поля внутри ComboBox -->
+                        <ComboBox.Resources>
+                            <Style TargetType="TextBox">
+                                <Setter Property="Background" Value="White"/>
+                                <Setter Property="Foreground" Value="Black"/>
+                                <Setter Property="SelectionBrush" Value="#0078D4"/>
+                                <Setter Property="SelectionOpacity" Value="0.5"/>
+                            </Style>
 
-        <!-- Primary button -->
-        <Style x:Key="PrimaryButton" TargetType="Button">
-            <Setter Property="Background" Value="#6366F1"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="16,10"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
-            <Setter Property="RenderTransform">
-                <Setter.Value>
-                    <ScaleTransform ScaleX="1" ScaleY="1"/>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Opacity" Value="0.9"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
+                            <!-- Стиль для выпадающего списка -->
+                            <Style TargetType="ComboBoxItem">
+                                <Setter Property="Background" Value="White"/>
+                                <Setter Property="Foreground" Value="Black"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsHighlighted" Value="True">
+                                        <Setter Property="Background" Value="#E6F0FA"/>
+                                        <Setter Property="Foreground" Value="Black"/>
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="#0078D4"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
 
-        <!-- Success button -->
-        <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
-            <Setter Property="Background" Value="#10B981"/>
-        </Style>
+                            <!-- Системные цвета для выпадающего окна -->
+                            <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="White"/>
+                            <SolidColorBrush x:Key="{x:Static SystemColors.WindowTextBrushKey}" Color="Black"/>
+                        </ComboBox.Resources>
 
-        <!-- Danger button -->
-        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
-            <Setter Property="Background" Value="#EF4444"/>
-        </Style>
+                        <ComboBoxItem Content="Ozon"/>
+                        <ComboBoxItem Content="Wildberries"/>
+                        <ComboBoxItem Content="Яндекс.Маркет"/>
+                        <ComboBoxItem Content="Другое"/>
+                    </ComboBox>
 
-        <!-- Ghost button -->
-        <Style x:Key="GhostButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderBrush" Value="#3D3D5C"/>
-            <Setter Property="BorderThickness" Value="1"/>
-        </Style>
+                    <!-- Cell -->
+                    <!-- Cell -->
+                    <TextBlock Text="ЯЧЕЙКА ХРАНЕНИЯ *" 
+           FontSize="10" 
+           FontWeight="SemiBold" 
+           Foreground="{StaticResource TextSecondaryBrush}" 
+           Margin="0,0,0,4"/>
 
-        <!-- Icon button (for delete) -->
-        <Style x:Key="IconButton" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#9CA3AF"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="6"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Foreground" Value="#EF4444"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
+                    <ComboBox ItemsSource="{Binding FreeCells}"
+          SelectedItem="{Binding SelectedCell}"
+          DisplayMemberPath="CellCode"
+          ToolTip="Выберите свободную ячейку"
+          Margin="0,0,0,14"
+          Background="White"
+          Foreground="Black">
 
-        <!-- Small control button (+/-) -->
-        <Style x:Key="ControlButton" TargetType="Button">
-            <Setter Property="Background" Value="#3D3D5C"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Width" Value="32"/>
-            <Setter Property="Height" Value="32"/>
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#6366F1"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
+                        <ComboBox.Resources>
+                            <!-- Стиль для выпадающего списка -->
+                            <Style TargetType="ComboBoxItem">
+                                <Setter Property="Background" Value="White"/>
+                                <Setter Property="Foreground" Value="Black"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsHighlighted" Value="True">
+                                        <Setter Property="Background" Value="#E6F0FA"/>
+                                        <Setter Property="Foreground" Value="Black"/>
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="#0078D4"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
 
-        <!-- Input TextBox -->
-        <Style x:Key="InputTextBox" TargetType="TextBox">
-            <Setter Property="Background" Value="#1E1E2E"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#3D3D5C"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="CaretBrush" Value="White"/>
-            <Style.Triggers>
-                <Trigger Property="IsFocused" Value="True">
-                    <Setter Property="BorderBrush" Value="#6366F1"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
+                            <!-- Системные цвета для выпадающего окна -->
+                            <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="White"/>
+                            <SolidColorBrush x:Key="{x:Static SystemColors.WindowTextBrushKey}" Color="Black"/>
+                        </ComboBox.Resources>
+                    </ComboBox>
 
-        <!-- Large barcode input -->
-        <Style x:Key="BarcodeTextBox" TargetType="TextBox" BasedOn="{StaticResource InputTextBox}">
-            <Setter Property="FontSize" Value="22"/>
-            <Setter Property="FontFamily" Value="Consolas"/>
-            <Setter Property="Padding" Value="14,12"/>
-        </Style>
+                    <!-- Divider -->
+                    <Border Height="1" Background="{StaticResource DividerBrush}" Margin="0,0,0,14"/>
+                    <TextBlock Text="ДАННЫЕ КЛИЕНТА" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,12"/>
 
-        <!-- Invalid input style -->
-        <Style x:Key="InvalidTextBox" TargetType="TextBox" BasedOn="{StaticResource InputTextBox}">
-            <Setter Property="BorderBrush" Value="#EF4444"/>
-            <Setter Property="Background" Value="#2D1F1F"/>
-        </Style>
+                    <!-- Client Name -->
+                    <TextBlock Text="ФИО КЛИЕНТА *" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding ClientName, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Фамилия Имя Отчество"
+                             Margin="0,0,0,14"/>
 
-        <!-- ComboBox style -->
-        <Style x:Key="InputComboBox" TargetType="ComboBox">
-            <Setter Property="Background" Value="#1E1E2E"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#3D3D5C"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="FontSize" Value="13"/>
-        </Style>
+                    <!-- Phone -->
+                    <TextBlock Text="ТЕЛЕФОН" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding ClientPhone, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="+7 (999) 999-99-99"
+                             helpers:PhoneMaskBehavior.IsEnabled="True"
+                             xmlns:helpers="clr-namespace:AISPVZ.Helpers"
+                             Margin="0,0,0,14"/>
 
-        <!-- DataGrid styles -->
-        <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#1E1E2E"/>
-            <Setter Property="Foreground" Value="#9CA3AF"/>
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="BorderThickness" Value="0"/>
-        </Style>
+                    <!-- Email -->
+                    <TextBlock Text="EMAIL" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding ClientEmail, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="email@example.com"
+                             Margin="0,0,0,14"/>
 
-        <Style TargetType="DataGridRow">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Style.Triggers>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#6366F1"/>
-                </Trigger>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#2D2D44"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
+                    <!-- Comment -->
+                    <TextBlock Text="КОММЕНТАРИЙ" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding Comment, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Дополнительная информация"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             Height="60"
+                             Margin="0,0,0,14"/>
 
-        <Style TargetType="DataGridCell">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="8,4"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-        </Style>
+                    <!-- Total Summary -->
+                    <Border Background="{StaticResource BackgroundBrush}" CornerRadius="6" Padding="12" Margin="0,0,0,14">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding ItemsCountText}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding TotalAmountText}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
 
-        <Style TargetType="DataGrid">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="RowBackground" Value="#252538"/>
-            <Setter Property="AlternatingRowBackground" Value="#2D2D44"/>
-            <Setter Property="GridLinesVisibility" Value="None"/>
-            <Setter Property="HeadersVisibility" Value="Column"/>
-            <Setter Property="SelectionMode" Value="Single"/>
-            <Setter Property="CanUserAddRows" Value="False"/>
-            <Setter Property="CanUserDeleteRows" Value="False"/>
-            <Setter Property="CanUserResizeRows" Value="False"/>
-            <Setter Property="AutoGenerateColumns" Value="False"/>
-            <Setter Property="IsReadOnly" Value="False"/>
-        </Style>
+                    <!-- Action Buttons -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                        <Button Content="Очистить"
+                                Command="{Binding ClearFormCommand}"
+                                Style="{StaticResource ButtonRevealStyle}"
+                                HorizontalAlignment="Left"/>
+                        <Button Content="Принять"
+                                Command="{Binding SaveOrderCommand}"
+                                Style="{StaticResource AccentButtonStyle}"
+                                HorizontalAlignment="Right"/>
+                        <Button Content="Принять и печать"
+                                Command="{Binding SaveAndPrintOrderCommand}"
+                                Style="{StaticResource AccentButtonStyle}"
+                                HorizontalAlignment="Right"/>
+                    </StackPanel>
 
-        <!-- Expand/Collapse Toggle -->
-        <Style x:Key="ExpandToggle" TargetType="ToggleButton">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="#9CA3AF"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Padding" Value="0,4"/>
-            <Setter Property="HorizontalAlignment" Value="Left"/>
-        </Style>
+                    <TextBlock Text="{Binding StatusMessage}" 
+                               Foreground="{StaticResource SuccessBrush}" 
+                               FontSize="12" TextWrapping="Wrap"
+                               Margin="0,8,0,0"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
 
-        <!-- Toast notification -->
-        <Style x:Key="ToastText" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-        </Style>
-    </Window.Resources>
+        <!-- ========== RIGHT PANEL: PRODUCTS ========== -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-    <Window.InputBindings>
-        <KeyBinding Key="F2" Command="{Binding AddItemCommand}"/>
-        <KeyBinding Key="F3" Command="{Binding AssignAutoCellCommand}"/>
-        <KeyBinding Key="Escape" Command="{Binding CancelCommand}"/>
-        <KeyBinding Key="Return" Command="{Binding SaveOrderCommand}"/>
-    </Window.InputBindings>
-
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-
-        <!-- HEADER -->
-        <Border Grid.Row="0" Background="#252538" Padding="20,12">
-            <Grid>
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Title & Order Number -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="Приёмка заказа" FontSize="18" FontWeight="SemiBold" Foreground="White"/>
-                    <TextBlock x:Name="OrderNumberText" Text="" FontSize="18" Foreground="#6366F1" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                </StackPanel>
-
-                <!-- Status Bar -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock x:Name="OperatorNameText" Text="Оператор: ---" FontSize="12" Foreground="#9CA3AF" Margin="0,0,16,0" VerticalAlignment="Center"/>
-                    <TextBlock x:Name="CurrentTimeText" Text="--:--" FontSize="12" Foreground="#9CA3AF" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Grid>
-        </Border>
-
-        <!-- MAIN CONTENT -->
-        <Grid Grid.Row="1" Margin="16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="360" MinWidth="280"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <!-- LEFT PANEL - Input Form -->
-            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Margin="0,0,12,0">
                 <StackPanel>
-                    <!-- Barcode Card -->
-                    <Border Style="{StaticResource CardBorder}">
-                        <StackPanel>
-                            <TextBlock Style="{StaticResource RequiredLabel}" Text="ШТРИХКОД *"/>
-                            <TextBox x:Name="BarcodeInput"
-                                     Style="{StaticResource BarcodeTextBox}"
-                                     Text="{Binding Barcode, UpdateSourceTrigger=PropertyChanged}"
-                                     MaxLength="50"
-                                     GotFocus="BarcodeInput_GotFocus"/>
-                            <TextBlock Text="Автофокус активен" FontSize="10" Foreground="#6B7280" Margin="0,6,0,0" x:Name="BarcodeHint"/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Marketplace Card -->
-                    <Border Style="{StaticResource CardBorder}">
-                        <StackPanel>
-                            <TextBlock Style="{StaticResource FieldLabel}" Text="МАРКЕТПЛЕЙС"/>
-                            <ComboBox Style="{StaticResource InputComboBox}"
-                                      ItemsSource="{Binding Source={x:Static models:EnumHelper.Marketplaces}}"
-                                      SelectedItem="{Binding SelectedMarketplace}">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Converter={StaticResource MarketplaceToTextConv}}" Foreground="White"/>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Storage Cell Card -->
-                    <Border Style="{StaticResource CardBorder}">
-                        <StackPanel>
-                            <TextBlock Style="{StaticResource FieldLabel}" Text="ЯЧЕЙКА ХРАНЕНИЯ"/>
-
-                            <Grid Margin="0,0,0,10">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="80"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <ComboBox Grid.Column="0"
-                                          Style="{StaticResource InputComboBox}"
-                                          SelectedItem="{Binding AutoCellZone}"
-                                          Margin="0,0,8,0">
-                                    <ComboBoxItem Content="A"/>
-                                    <ComboBoxItem Content="B"/>
-                                    <ComboBoxItem Content="C"/>
-                                    <ComboBoxItem Content="D"/>
-                                </ComboBox>
-
-                                <ComboBox Grid.Column="1"
-                                          Style="{StaticResource InputComboBox}"
-                                          ItemsSource="{Binding FreeCells}"
-                                          SelectedItem="{Binding SelectedCell}"
-                                          IsEditable="True"/>
-
-                                <Button Grid.Column="2"
-                                        Content="🔍"
-                                        Style="{StaticResource GhostButton}"
-                                        Command="{Binding AssignAutoCellCommand}"
-                                        ToolTip="F3 - Найти свободную"
-                                        Padding="10,8"
-                                        Margin="8,0,0,0"/>
-                            </Grid>
-
-                            <TextBlock Text="Выберите зону и номер ячейки" FontSize="10" Foreground="#6B7280"/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Client Info Card -->
-                    <Border Style="{StaticResource CardBorder}">
-                        <StackPanel>
-                            <TextBlock Style="{StaticResource FieldLabel}" Text="ДАННЫЕ КЛИЕНТА"/>
-
-                            <!-- FIO -->
-                            <TextBlock Style="{StaticResource RequiredLabel}" Text="ФИО *"/>
-                            <TextBox Style="{StaticResource InputTextBox}"
-                                     Text="{Binding ClientName, UpdateSourceTrigger=PropertyChanged}"
-                                     Margin="0,0,0,10"
-                                     x:Name="ClientNameInput"/>
-
-                            <!-- Phone with Search -->
-                            <TextBlock Style="{StaticResource FieldLabel}" Text="ТЕЛЕФОН"/>
-                            <Grid Margin="0,0,0,10">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <TextBox Grid.Column="0"
-                                         Style="{StaticResource InputTextBox}"
-                                         Text="{Binding ClientPhone, UpdateSourceTrigger=PropertyChanged}"
-                                         x:Name="PhoneInput"/>
-
-                                <Button Grid.Column="1"
-                                        Content="🔎"
-                                        Style="{StaticResource PrimaryButton}"
-                                        Command="{Binding SearchClientByPhoneCommand}"
-                                        Margin="8,0,0,0"
-                                        Padding="10,8"
-                                        ToolTip="Найти клиента по телефону"/>
-                            </Grid>
-
-                            <!-- Email -->
-                            <TextBlock Style="{StaticResource FieldLabel}" Text="EMAIL"/>
-                            <TextBox Style="{StaticResource InputTextBox}"
-                                     Text="{Binding ClientEmail, UpdateSourceTrigger=PropertyChanged}"/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Planned Date Card -->
-                    <Border Style="{StaticResource CardBorder}">
-                        <StackPanel>
-                            <TextBlock Style="{StaticResource FieldLabel}" Text="ПЛАНИРУЕМАЯ ДАТА ВЫДАЧИ"/>
-                            <DatePicker SelectedDate="{Binding PlannedIssueDate}"
-                                        FontSize="13"
-                                        Background="#1E1E2E"
-                                        Foreground="White"
-                                        BorderBrush="#3D3D5C"/>
-                            <TextBlock Text="По умолчанию: сегодня + 3 дня" FontSize="10" Foreground="#6B7280" Margin="0,4,0,0"/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Comment Card (Collapsible) -->
-                    <Border Style="{StaticResource CardBorder}">
-                        <StackPanel>
-                            <ToggleButton x:Name="CommentToggle"
-                                          Style="{StaticResource ExpandToggle}"
-                                          Content="📝 КОММЕНТАРИЙ"
-                                          IsChecked="False"
-                                          Click="CommentToggle_Click"/>
-                            <TextBox x:Name="CommentBox"
-                                     Style="{StaticResource InputTextBox}"
-                                     Text="{Binding Comment, UpdateSourceTrigger=PropertyChanged}"
-                                     AcceptsReturn="True"
-                                     Height="70"
-                                     TextWrapping="Wrap"
-                                     Visibility="Collapsed"
-                                     Margin="0,8,0,0"/>
-                        </StackPanel>
-                    </Border>
+                    <TextBlock Text="Состав заказа" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="Добавьте товары, входящие в заказ" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
                 </StackPanel>
-            </ScrollViewer>
 
-            <!-- RIGHT PANEL - Products Table -->
-            <Grid Grid.Column="1">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <!-- Table Header -->
-                <Border Grid.Row="0" Style="{StaticResource CardBorder}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="СОСТАВ ЗАКАЗА" FontSize="16" FontWeight="SemiBold" Foreground="White"/>
-                            <TextBlock Text="{Binding ItemsCountText}" FontSize="12" Foreground="#10B981" Margin="0,4,0,0"/>
-                        </StackPanel>
-
-                        <ToggleButton Grid.Column="1"
-                                Content="{Binding AddItemButtonText}"
-                                Style="{StaticResource SuccessButton}"
-                                IsChecked="{Binding IsAddingItem}"
-                                ToolTip="F2 - Добавить товар"
-                                Padding="14,10"/>
-                    </Grid>
-                </Border>
-
-                <!-- Add Item Form (shown when adding) -->
-                <Border Grid.Row="0" Style="{StaticResource CardBorder}"
-                        Margin="0,8,0,0"
-                        Visibility="{Binding IsAddingItem, Converter={StaticResource BoolToVisConv}}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="110"/>
-                            <ColumnDefinition Width="*" MinWidth="200"/>
-                            <ColumnDefinition Width="80"/>
-                            <ColumnDefinition Width="110"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <TextBox Grid.Column="0"
-                                 Style="{StaticResource InputTextBox}"
-                                 Text="{Binding NewItemArticle, UpdateSourceTrigger=PropertyChanged}"
-                                 Margin="0,0,8,0"
-                                 ToolTip="Артикул"/>
-
-                        <TextBox Grid.Column="1"
-                                 Style="{StaticResource InputTextBox}"
-                                 Text="{Binding NewItemName, UpdateSourceTrigger=PropertyChanged}"
-                                 Margin="0,0,8,0"
-                                 ToolTip="Наименование *"/>
-
-                        <TextBox Grid.Column="2"
-                                 Style="{StaticResource InputTextBox}"
-                                 Text="{Binding NewItemQuantity, UpdateSourceTrigger=PropertyChanged}"
-                                 Margin="0,0,8,0"
-                                 ToolTip="Кол-во"
-                                 TextAlignment="Center"/>
-
-                        <TextBox Grid.Column="3"
-                                 Style="{StaticResource InputTextBox}"
-                                 Text="{Binding NewItemPrice, UpdateSourceTrigger=PropertyChanged}"
-                                 Margin="0,0,8,0"
-                                 ToolTip="Цена ₽"
-                                 TextAlignment="Right"/>
-
-                        <StackPanel Grid.Column="4" Orientation="Horizontal">
-                            <Button Content="OK"
-                                    Style="{StaticResource SuccessButton}"
-                                    Command="{Binding ConfirmAddItemCommand}"
-                                    Padding="16,8"
-                                    Margin="0,0,6,0"/>
-                            <Button Content="Отмена"
-                                    Style="{StaticResource DangerButton}"
-                                    Command="{Binding CancelAddItemCommand}"
-                                    Padding="16,8"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-                <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="0" Margin="0,0,0,10">
-                    <DataGrid ItemsSource="{Binding Items}"
-                              VirtualizingPanel.IsVirtualizing="True"
-                              VirtualizingPanel.VirtualizationMode="Recycling">
-                        <DataGrid.Columns>
-                            <!-- Delete Column -->
-                            <DataGridTemplateColumn Header="" Width="45">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Button Style="{StaticResource IconButton}"
-                                                Content="🗑"
-                                                Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                CommandParameter="{Binding}"
-                                                ToolTip="Удалить товар"
-                                                HorizontalAlignment="Center"/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-
-                            <!-- Article -->
-                            <DataGridTextColumn Header="АРТИКУЛ" Width="110"
-                                                Binding="{Binding Article, UpdateSourceTrigger=PropertyChanged}"
-                                                FontFamily="Consolas">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Foreground" Value="#9CA3AF"/>
-                                        <Setter Property="Padding" Value="8,6"/>
-                                        <Setter Property="VerticalAlignment" Value="Center"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                                <DataGridTextColumn.EditingElementStyle>
-                                    <Style TargetType="TextBox" BasedOn="{StaticResource InputTextBox}">
-                                        <Setter Property="FontFamily" Value="Consolas"/>
-                                    </Style>
-                                </DataGridTextColumn.EditingElementStyle>
-                            </DataGridTextColumn>
-
-                            <!-- Product Name -->
-                            <DataGridTextColumn Header="НАИМЕНОВАНИЕ *" Width="*" MinWidth="200"
-                                                Binding="{Binding ProductName, UpdateSourceTrigger=PropertyChanged}">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Foreground" Value="White"/>
-                                        <Setter Property="Padding" Value="8,6"/>
-                                        <Setter Property="VerticalAlignment" Value="Center"/>
-                                        <Setter Property="FontWeight" Value="Medium"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-
-                            <!-- Quantity -->
-                            <DataGridTemplateColumn Header="КОЛ-ВО" Width="120">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                            <Button Content="−"
-                                                    Style="{StaticResource ControlButton}"
-                                                    Command="{Binding DataContext.DecrementQuantityCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                    CommandParameter="{Binding}"/>
-                                            <TextBlock Text="{Binding Quantity}"
-                                                       Width="36"
-                                                       TextAlignment="Center"
-                                                       VerticalAlignment="Center"
-                                                       FontSize="14"
-                                                       FontWeight="Bold"
-                                                       Foreground="White"/>
-                                            <Button Content="+"
-                                                    Style="{StaticResource ControlButton}"
-                                                    Command="{Binding DataContext.IncrementQuantityCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                    CommandParameter="{Binding}"/>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-
-                            <!-- Price -->
-                            <DataGridTextColumn Header="ЦЕНА" Width="110"
-                                                Binding="{Binding Price, UpdateSourceTrigger=PropertyChanged, StringFormat='{}{0:N2} ₽'}">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Foreground" Value="#10B981"/>
-                                        <Setter Property="Padding" Value="8,6"/>
-                                        <Setter Property="TextAlignment" Value="Right"/>
-                                        <Setter Property="VerticalAlignment" Value="Center"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                                <DataGridTextColumn.EditingElementStyle>
-                                    <Style TargetType="TextBox" BasedOn="{StaticResource InputTextBox}">
-                                        <Setter Property="TextAlignment" Value="Right"/>
-                                    </Style>
-                                </DataGridTextColumn.EditingElementStyle>
-                            </DataGridTextColumn>
-
-                            <!-- Sum -->
-                            <DataGridTemplateColumn Header="СУММА" Width="120">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding TotalPrice, StringFormat='{}{0:N2} ₽'}"
-                                                   Foreground="#6366F1"
-                                                   FontWeight="Bold"
-                                                   TextAlignment="Right"
-                                                   Padding="8,6"
-                                                   VerticalAlignment="Center"/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </Border>
-
-                <!-- Footer with Total -->
-                <Border Grid.Row="2" Style="{StaticResource CardBorder}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding TotalAmountText}" FontSize="26" FontWeight="Bold" Foreground="#6366F1"/>
-                        </StackPanel>
-
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <Button x:Name="ClearButton"
-                                    Content="Очистить"
-                                    Style="{StaticResource GhostButton}"
-                                    Command="{Binding ClearFormCommand}"
-                                    Margin="0,0,10,0"/>
-
-                            <Button x:Name="CancelButton"
-                                    Content="Отмена"
-                                    Style="{StaticResource DangerButton}"
-                                    Command="{Binding CancelCommand}"
-                                    Margin="0,0,10,0"/>
-
-                            <Button x:Name="AcceptButton"
-                                    Content="✓ Принять заказ"
-                                    Style="{StaticResource SuccessButton}"
-                                    Command="{Binding SaveOrderCommand}"
-                                    MinWidth="160"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
+                <Button Grid.Column="1"
+                        Content="Добавить товар"
+                        Command="{Binding AddItemCommand}"
+                        Style="{StaticResource AccentButtonStyle}"/>
             </Grid>
-        </Grid>
 
-        <!-- TOAST NOTIFICATION (fixed position, bottom-right) -->
-        <Border x:Name="ToastBorder"
-                Grid.Row="1"
-                Background="#252538"
-                CornerRadius="8"
-                Padding="16,12"
-                Margin="16"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Bottom"
-                Visibility="Collapsed"
-                MaxWidth="320">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.3"/>
-            </Border.Effect>
-            <StackPanel>
-                <TextBlock x:Name="ToastTitle" Style="{StaticResource ToastText}" FontWeight="SemiBold"/>
-                <TextBlock x:Name="ToastMessage" Style="{StaticResource ToastText}" Foreground="#9CA3AF" Margin="0,4,0,0" TextWrapping="Wrap"/>
-            </StackPanel>
-        </Border>
+            <!-- Add Item Form -->
+            <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" 
+                    CornerRadius="8" Padding="16" Margin="0,0,0,12"
+                    Visibility="{Binding IsAddingItem, Converter={StaticResource BoolToVisConv}}"
+                    BorderBrush="{StaticResource AccentBrush}" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="НОВЫЙ ТОВАР" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}" Margin="0,0,0,10"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="100"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                            <TextBlock Text="АРТИКУЛ" FontSize="9" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                            <TextBox Text="{Binding NewItemArticle, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Артикул товара"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                            <TextBlock Text="НАИМЕНОВАНИЕ *" FontSize="9" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                            <TextBox Text="{Binding NewItemName, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Название товара"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Margin="0,0,8,0">
+                            <TextBlock Text="КОЛ-ВО" FontSize="9" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                            <TextBox Text="{Binding NewItemQuantity, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Количество"
+                                     TextAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="3">
+                            <TextBlock Text="ЦЕНА (₽)" FontSize="9" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                            <TextBox Text="{Binding NewItemPrice, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Цена за единицу"
+                                     TextAlignment="Right"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                        <Button Content="Отмена" Command="{Binding CancelAddItemCommand}" Style="{StaticResource ButtonRevealStyle}"/>
+                        <Button Content="Добавить" Command="{Binding ConfirmAddItemCommand}" Style="{StaticResource AccentButtonStyle}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Items List -->
+            <Border Grid.Row="2" Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Table Header -->
+                    <Grid Grid.Row="0" Margin="8,4,8,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="90"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="50"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="АРТИКУЛ" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBlock Grid.Column="1" Text="НАИМЕНОВАНИЕ" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" Margin="8,0"/>
+                        <TextBlock Grid.Column="2" Text="КОЛ-ВО" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" TextAlignment="Center"/>
+                        <TextBlock Grid.Column="3" Text="ЦЕНА" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" TextAlignment="Right"/>
+                        <TextBlock Grid.Column="4" Text="СУММА" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSecondaryBrush}" TextAlignment="Right" Margin="8,0,0,0"/>
+                    </Grid>
+
+                    <ListView Grid.Row="1" ItemsSource="{Binding Items}" 
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              BorderThickness="0" Background="Transparent">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="90"/>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="50"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0" Text="{Binding Article}" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" FontFamily="Consolas"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding ProductName}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="8,0" Foreground="{StaticResource TextPrimaryBrush}" FontSize="13" TextTrimming="CharacterEllipsis"/>
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Button Content="-"
+                                                Command="{Binding DataContext.DecrementQuantityCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource ButtonRevealStyle}" Padding="6,2" Margin="0,0,4,0" FontSize="11"/>
+                                        <TextBlock Text="{Binding Quantity}" Width="28" TextAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                                        <Button Content="+"
+                                                Command="{Binding DataContext.IncrementQuantityCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource ButtonRevealStyle}" Padding="6,2" Margin="4,0,0,0" FontSize="11"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="3" Text="{Binding Price, StringFormat='{}{0:N2}'}" VerticalAlignment="Center" TextAlignment="Right" Foreground="{StaticResource TextPrimaryBrush}" FontSize="12"/>
+                                    <TextBlock Grid.Column="4" Text="{Binding TotalPrice, StringFormat='{}{0:N2}'}" FontWeight="SemiBold" VerticalAlignment="Center" TextAlignment="Right" Margin="8,0,0,0" Foreground="{StaticResource TextPrimaryBrush}" FontSize="12"/>
+                                    <Button Grid.Column="5"
+                                            Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource ButtonRevealStyle}"
+                                            Content="&#xE74D;"
+                                            FontFamily="Segoe MDL2 Assets"
+                                            Padding="6,2"
+                                            Margin="4,0,0,0"
+                                            FontSize="11"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </Window>

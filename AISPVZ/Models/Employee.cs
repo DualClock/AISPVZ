@@ -81,13 +81,13 @@ public class StorageCell
 
 public enum OrderStatus
 {
-    Pending,        // Ожидает приёмки
-    Accepted,       // Принят
-    InStorage,      // На хранении
-    Issued,         // Выдан
-    PartialIssued,  // Частично выдан
-    Returned,       // Возвращён
-    Cancelled       // Отменён
+    Pending,       
+    Accepted,       
+    InStorage,      
+    Issued,         
+    PartialIssued,  
+    Returned,      
+    Cancelled       
 }
 
 public enum Marketplace
@@ -278,9 +278,11 @@ public class SystemSetting
 
     [Required]
     [MaxLength(100)]
+    [Column("SettingKey")]
     public string Key { get; set; } = string.Empty;
 
     [MaxLength(500)]
+    [Column("SettingValue")]
     public string Value { get; set; } = string.Empty;
 
     [MaxLength(200)]

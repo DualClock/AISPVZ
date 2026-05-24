@@ -133,8 +133,8 @@ public class CellStatusToColorConverter : IValueConverter
         if (value is bool isBusy)
         {
             return isBusy
-                ? new SolidColorBrush(Color.FromRgb(244, 67, 54))   // Red - busy
-                : new SolidColorBrush(Color.FromRgb(76, 175, 80)); // Green - free
+                ? new SolidColorBrush(Color.FromRgb(244, 67, 54))  
+                : new SolidColorBrush(Color.FromRgb(76, 175, 80)); 
         }
         return new SolidColorBrush(Colors.Gray);
     }
@@ -194,5 +194,60 @@ public class DecimalToStringConverter : IValueConverter
         if (decimal.TryParse(value?.ToString(), NumberStyles.Any, CultureInfo.GetCultureInfo("ru-RU"), out var result))
             return result;
         return 0m;
+    }
+}
+
+public class CellStatusToBoolConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is bool isBusy)
+        {
+            return isBusy ? "Занята" : "Свободна";
+        }
+        return "Неизвестно";
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class DoubleToDecimalConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is double d)
+            return (decimal)d;
+        if (value is decimal dc)
+            return dc;
+        return 0m;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is decimal dc)
+            return (double)dc;
+        if (value is double d)
+            return d;
+        return 0.0;
+    }
+}
+
+public class NullToTextConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value == null)
+            return "НОВАЯ ЯЧЕЙКА";
+        if (value is int intVal && intVal == 0)
+            return "НОВАЯ ЯЧЕЙКА";
+        return value.ToString() ?? "";
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
     }
 }

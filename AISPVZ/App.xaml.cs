@@ -2,6 +2,7 @@ using System.Windows;
 using System.IO;
 using AISPVZ.Services;
 using AISPVZ.Models;
+using AISPVZ.Data.Context;
 
 namespace AISPVZ;
 
@@ -20,18 +21,25 @@ public partial class App : Application
         AppDomain.CurrentDomain.UnhandledException += (s, args) =>
         {
             var ex = args.ExceptionObject as Exception;
+            var msg = ex?.ToString() ?? "Unknown fatal error";
             LogException(ex);
+            MessageBox.Show("Критическая ошибка:\n" + msg, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         };
 
         DispatcherUnhandledException += (s, args) =>
         {
             LogException(args.Exception);
+            var msg = args.Exception?.ToString() ?? "Unknown error";
+            MessageBox.Show("Необработанное исключение:\n" + msg, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             args.Handled = true;
         };
 
         // Initialize database (create if not exists, seed with data)
         var dbService = new DatabaseService();
         await dbService.InitializeDatabaseAsync();
+
+        // Fix legacy FLOAT columns to DECIMAL(18,2)
+        DbInitializer.EnsureDecimalColumns();
 
         // Auto-backup check
         await CheckAndPerformAutoBackupAsync();

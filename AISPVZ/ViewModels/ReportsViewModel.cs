@@ -5,20 +5,34 @@ using AISPVZ.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
 using System.IO;
-using AISPVZ.Data.Context;
 
 namespace AISPVZ.ViewModels;
 
 public partial class ReportsViewModel : ObservableObject
 {
+    private readonly ReportService _reportService;
     private readonly ExportService _exportService;
 
+    // Dashboard metrics
     [ObservableProperty]
-    private DateTime _reportStartDate = DateTime.Now.AddDays(-7);
+    private decimal _currentMonthRevenue;
 
     [ObservableProperty]
-    private DateTime _reportEndDate = DateTime.Now;
+    private int _currentMonthCompleted;
 
+    [ObservableProperty]
+    private int _currentMonthReturns;
+
+    [ObservableProperty]
+    private ObservableCollection<TopProductItem> _topProducts = new();
+
+    [ObservableProperty]
+    private string _statusMessage = "";
+
+    [ObservableProperty]
+    private DateTime _reportMonth = DateTime.Now;
+
+    // Legacy shift report fields (kept for compatibility)
     [ObservableProperty]
     private ObservableCollection<ShiftReportItem> _shiftReportItems = new();
 
@@ -34,14 +48,12 @@ public partial class ReportsViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<Shift> _closedShifts = new();
 
-    [ObservableProperty]
-    private string _statusMessage = "";
-
     private int _currentEmployeeId;
     private int _currentShiftId;
 
     public ReportsViewModel()
     {
+        _reportService = new ReportService();
         _exportService = new ExportService();
     }
 
@@ -52,9 +64,65 @@ public partial class ReportsViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task LoadDashboardAsync()
+    {
+        try
+        {
+            StatusMessage = "Загрузка...";
+            var data = await _reportService.GetDashboardReportDataAsync();
+            CurrentMonthRevenue = data.CurrentMonthRevenue;
+            CurrentMonthCompleted = data.CurrentMonthCompleted;
+            CurrentMonthReturns = data.CurrentMonthReturns;
+            TopProducts = new ObservableCollection<TopProductItem>(data.TopProducts);
+            StatusMessage = $"Данные за {DateTime.Now:MMMM yyyy} загружены";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "Ошибка загрузки: " + ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private async Task LoadMonthReportAsync()
+    {
+        try
+        {
+            StatusMessage = "Загрузка...";
+            var revenue = await _reportService.GetMonthlyRevenueAsync(ReportMonth.Year, ReportMonth.Month);
+            var completed = await _reportService.GetCompletedOrdersCountAsync(ReportMonth.Year, ReportMonth.Month);
+            var top = await _reportService.GetTopProductsAsync(ReportMonth.Year, ReportMonth.Month, 5);
+
+            CurrentMonthRevenue = revenue;
+            CurrentMonthCompleted = completed;
+            TopProducts = new ObservableCollection<TopProductItem>(top);
+            StatusMessage = $"Отчёт за {ReportMonth:MMMM yyyy} загружен";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "Ошибка загрузки: " + ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ExportTopProductsToCsvAsync()
+    {
+        if (TopProducts.Count == 0)
+        {
+            StatusMessage = "Нет данных для экспорта";
+            return;
+        }
+
+        var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+            $"ТопТоваров_{ReportMonth:yyyyMM}.csv");
+        await _exportService.ExportToCsvAsync(TopProducts, path);
+        StatusMessage = $"Экспортировано: {path}";
+    }
+
+    // Legacy commands preserved for compatibility
+    [RelayCommand]
     private async Task LoadClosedShiftsAsync()
     {
-        using var db = new AppDbContext();
+        using var db = new AISPVZ.Data.Context.AppDbContext();
         var shifts = await db.Shifts
             .Include(s => s.Employee)
             .Where(s => s.IsClosed)
@@ -68,8 +136,7 @@ public partial class ReportsViewModel : ObservableObject
     private async Task GenerateShiftReportAsync()
     {
         if (SelectedShift == null) return;
-
-        using var db = new AppDbContext();
+        using var db = new AISPVZ.Data.Context.AppDbContext();
         var issues = await db.IssueOperations
             .Include(i => i.Order).ThenInclude(o => o.Client)
             .Include(i => i.Employee)
@@ -112,7 +179,7 @@ public partial class ReportsViewModel : ObservableObject
     [RelayCommand]
     private async Task GenerateOverdueReportAsync()
     {
-        using var db = new AppDbContext();
+        using var db = new AISPVZ.Data.Context.AppDbContext();
         var today = DateTime.Now.Date;
         var overdue = await db.Orders
             .Include(o => o.Client)
@@ -136,9 +203,9 @@ public partial class ReportsViewModel : ObservableObject
     [RelayCommand]
     private async Task GenerateMarketplaceReportAsync()
     {
-        using var db = new AppDbContext();
+        using var db = new AISPVZ.Data.Context.AppDbContext();
         var stats = await db.Orders
-            .Where(o => o.ArrivedAt >= ReportStartDate && o.ArrivedAt <= ReportEndDate)
+            .Where(o => o.ArrivedAt >= ReportMonth.AddMonths(-1) && o.ArrivedAt <= ReportMonth)
             .GroupBy(o => o.Marketplace)
             .Select(g => new { Marketplace = g.Key, Count = g.Count(), TotalAmount = g.Sum(o => o.Items.Sum(i => i.Price * i.Quantity)) })
             .ToListAsync();
@@ -150,51 +217,6 @@ public partial class ReportsViewModel : ObservableObject
                 OrderCount = s.Count,
                 TotalAmount = s.TotalAmount
             }));
-    }
-
-    [RelayCommand]
-    private async Task ExportShiftReportToCsvAsync()
-    {
-        if (ShiftReportItems.Count == 0)
-        {
-            StatusMessage = "Нет данных для экспорта";
-            return;
-        }
-
-        var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-            $"Сменный_отчёт_{DateTime.Now:yyyyMMdd_HHmmss}.csv");
-        await _exportService.ExportToCsvAsync(ShiftReportItems, path);
-        StatusMessage = $"Экспортировано: {path}";
-    }
-
-    [RelayCommand]
-    private async Task ExportOverdueReportToCsvAsync()
-    {
-        if (OverdueItems.Count == 0)
-        {
-            StatusMessage = "Нет данных для экспорта";
-            return;
-        }
-
-        var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-            $"Просроченные_{DateTime.Now:yyyyMMdd_HHmmss}.csv");
-        await _exportService.ExportToCsvAsync(OverdueItems, path);
-        StatusMessage = $"Экспортировано: {path}";
-    }
-
-    [RelayCommand]
-    private async Task ExportMarketplaceReportToCsvAsync()
-    {
-        if (MarketplaceStats.Count == 0)
-        {
-            StatusMessage = "Нет данных для экспорта";
-            return;
-        }
-
-        var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-            $"Маркетплейсы_{DateTime.Now:yyyyMMdd_HHmmss}.csv");
-        await _exportService.ExportToCsvAsync(MarketplaceStats, path);
-        StatusMessage = $"Экспортировано: {path}";
     }
 }
 
